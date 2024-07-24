@@ -1,0 +1,22 @@
+{
+  "name": "localcap-viewer",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "scripts": {
+    "serve": "vite preview",
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+
+  },
+  "dependencies": {
+    "three": "^0.166.1",
+    "vue": "^3.4.31"
+  },
+  "devDependencies": {
+    "@types/three": "^0.166.0",
+    "@vitejs/plugin-vue": "^5.1.0",
+    "vite": "^5.3.4"
+  }
+}
