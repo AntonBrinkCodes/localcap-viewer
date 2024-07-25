@@ -20,9 +20,9 @@ const routes = [
   },
   // Add other routes here
 ];
-
+const BASE_URL = '/';
 const router = createRouter({
-  history: createWebHistory(process.env.BASE_URL),
+  history: createWebHistory(BASE_URL),
   routes
 });
 

@@ -1,34 +1,44 @@
-<script setup>
+<script>
 import { ref } from 'vue'
 import { useRouter } from 'vue-router';
+import QRCodeVue3 from "qrcode-vue3";
 
+export default {
+  name: 'Home',
+  components: {
+    QRCodeVue3
+  },
+  data() {
+    return {
+      count:0,
+      msg: "",
+    }
+  },
+ 
+}
 
-defineProps({
-  msg: String,
-})
-
-
-const count = ref(0);
 const router = useRouter();
 
-const goToAnotherPage = () => {
-  router.push('/vizualiser');
-};
 </script>
 
 <template>
   <h1>{{ msg }}</h1>
-
+<p>
+  <QRCodeVue3
+          value="Simple QR code"
+       ></QRCodeVue3>
+</p>
   <div class="card">
     <button type="button" @click="count++">count is {{ count }}</button>
     <p>
       Edit
-      <code>components/.vue</code> to test HMR
+      <code>components/HelloWorld.vue</code> to test HMR
     </p>
     <p>
-      
-    <button @click="goToAnotherPage">Go to Vizualiser Page</button>
+      <strong>Current route path:</strong> {{ $route.fullPath }}
+    <!--<button @click="goToAnotherPage">Go to Vizualiser Page</button>-->
     </p>
+
   </div>
 
   <p>

@@ -3,15 +3,18 @@
       <router-view></router-view>
     </div>
 
-    <p>
-      Edit
-      <code>components/.vue</code> to test HMR
-    </p>
+    <nav>
+    <RouterLink to="/">Go to Home</RouterLink>
+    <RouterLink to="/vizualiser">Go to vizualiser</RouterLink>
+  </nav>
   </template>
   
   <script>
+  import QRCodeVue3 from "qrcode-vue3";
   export default {
-    name: 'App'
+    name: 'App',
+    components: {
+  },
   }
   </script>
   
