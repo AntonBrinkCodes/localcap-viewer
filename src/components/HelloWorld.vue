@@ -1,21 +1,33 @@
 <script setup>
 import { ref } from 'vue'
+import { useRouter } from 'vue-router';
+
 
 defineProps({
   msg: String,
 })
 
-const count = ref(0)
+
+const count = ref(0);
+const router = useRouter();
+
+const goToAnotherPage = () => {
+  router.push('/vizualiser');
+};
 </script>
 
 <template>
   <h1>{{ msg }}</h1>
-  
+
   <div class="card">
     <button type="button" @click="count++">count is {{ count }}</button>
     <p>
       Edit
       <code>components/.vue</code> to test HMR
+    </p>
+    <p>
+      
+    <button @click="goToAnotherPage">Go to Vizualiser Page</button>
     </p>
   </div>
 
@@ -35,6 +47,7 @@ const count = ref(0)
   </p>
   <p class="read-the-docs">Click on the Vite and Vue logos to learn more</p>
 </template>
+
 
 <style scoped>
 .read-the-docs {
