@@ -8,6 +8,8 @@
         <p>Loading...</p>
       </div>
     </div>-->
+    <router-view />
+
   </div>
 </template>
 
@@ -29,8 +31,8 @@ export default {
   name: 'App',
   data() {
     return {
-      meshes: {},
-      /**trialLoading: true,
+      /**meshes: {},
+      trialLoading: true,
       scene: null,
       camera: null,
       renderer: null,
@@ -61,6 +63,8 @@ export default {
   methods: {
     initializeInstance() {
       this.playing = false;
+      this.meshes = {};
+      this.frame = 0;
       //this.meshes = {};
     },
 
@@ -179,14 +183,15 @@ export default {
   this.onResize()
   // animate
 
-  function delay(time) {
-    return new Promise(resolve => setTimeout(resolve, time));
-     }
 
-  delay(1000).then(() => {
+
+  this.delay(1000).then(() => {
     this.togglePlay(true)
   });
 
+  },
+  delay(time) {
+    return new Promise(resolve => setTimeout(resolve, time));
   },
   onResize() {
             const container = this.$refs.mocap
@@ -203,8 +208,10 @@ export default {
         animate() {
             // cancel display cycle if loading of new trial started
             if (!this.trialLoading) {
-                requestAnimationFrame(this.animate)
-                this.animateOneFrameNoVid()
+                this.delay(33.33333/2).then(()=> { // Super dumb but to force 30 fps right now
+                  requestAnimationFrame(this.animate)
+                  this.animateOneFrameNoVid()
+                }) 
             }
         },
         timeToFrame(time) {
@@ -277,19 +284,19 @@ export default {
         },
   animateOneFrameNoVid() {
     let cframe;
-    console.log("Animating frame");
-
+    //console.log("Animating frame no video");
     let frames = this.frames.length;
-
+    
     // Determine current frame
     this.frame = (this.frame + 1) % this.frames.length; // Loop back to the start if end is reached
-
+    console.log("this.frame is: ", this.frame);
     if (this.frame >= this.frames.length) {
         this.frame = this.frames.length - 1;
     }
-
+    cframe = this.frame;
     if (cframe < this.frames.length) {
         // Display the frame
+        console.log("displaying frame ;)", cframe)
         let json = this.animation_json;
         for (let body in json.bodies) {
             json.bodies[body].attachedGeometries.forEach((geom) => {
@@ -312,7 +319,7 @@ export default {
     
     try {
         this.renderer.render(this.scene, this.camera);
-    } catch (error) {
+      } catch (error) {
       console.error("Rendering error: ", error);
       console.error("Scene:", this.scene);
       console.error("Camera:", this.camera);
