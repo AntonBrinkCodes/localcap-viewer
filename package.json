@@ -8,12 +8,11 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
+
   },
   "dependencies": {
-    "qrcode-vue3": "^1.6.8",
     "three": "^0.166.1",
-    "vue": "^3.4.34",
-    "vue-router": "^4.4.0"
+    "vue": "^3.4.31"
   },
   "devDependencies": {
     "@types/three": "^0.166.0",
