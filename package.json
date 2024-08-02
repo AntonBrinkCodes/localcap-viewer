@@ -8,15 +8,18 @@
     "dev": "vite",
     "build": "vite build",
     "preview": "vite preview"
-
   },
   "dependencies": {
+    "qrcode-vue3": "^1.6.8",
     "three": "^0.166.1",
-    "vue": "^3.4.31"
+    "vue": "^3.4.31",
+    "vue-router": "^4.0.13",
+    "vuex": "^4.1.0",
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/three": "^0.166.0",
-    "@vitejs/plugin-vue": "^5.1.0",
+    "@vitejs/plugin-vue": "^5.1.1",
     "vite": "^5.3.4"
   }
 }

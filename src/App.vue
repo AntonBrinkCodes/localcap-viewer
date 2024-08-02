@@ -10,12 +10,12 @@
   </template>
   
   <script>
-  import QRCodeVue3 from "qrcode-vue3";
   export default {
     name: 'App',
-    components: {
-  },
-  }
+    created() {
+      this.$store.dispatch('connectWebSocket');
+    }
+  };
   </script>
   
   <style>
