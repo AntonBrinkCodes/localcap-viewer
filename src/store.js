@@ -8,16 +8,22 @@ const port = "8080"
 export default createStore({
   state: {
     webSocket: null,
+    sessionWebSocket: null, // maybe not needed..
     connectionStatus: 'Disconnected',
     clientsCount: 0,
     mobilesCount: 0,
     receivedMessage: '',
+    receivedSessionMessage: '',
     BASEURL: '',
     sessionID: '',
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
       state.webSocket = webSocket;
+    },
+    SET_SESSION_WEBSOCKET(state, webSocket){
+      console.log("connecting to session WS")
+      state.sessionWebSocket = webSocket;
     },
     SET_CONNECTION_STATUS(state, status) {
       state.connectionStatus = status;
@@ -30,6 +36,9 @@ export default createStore({
     },
     SET_RECEIVED_MESSAGE(state, message) {
       state.receivedMessage = message;
+    },
+    SET_RECEIVED_SESSION_MESSAGE(state, message){
+      state.receivedSessionMessage = message;
     },
     SET_BASEURL(state){
       state.BASEURL = baseURL + port;
@@ -55,7 +64,7 @@ export default createStore({
         const message = event.data;
         console.log('Received:', message);
 
-        if (message.startsWith("Web-apps connected:")) { //When a new client (web or mobile) connects.
+        if (message.startsWith("General Web-apps connected:")) { //When a new client (web or mobile) connects without session_id (should only be web clients).
           commit('SET_CLIENTS_COUNT', parseInt(message.split(": ")[1]));
           commit('SET_MOBILES_COUNT', parseInt(message.split(": ")[2]))         
         } else if (message.startsWith("New session id:")){
@@ -78,14 +87,49 @@ export default createStore({
       };
 
       commit('SET_WEBSOCKET', ws);
-    }, 
-
-    sendMessage({ state }, message) {
-      if (state.webSocket && state.connectionStatus === 'Connected') {
-        console.log(message)
-        state.webSocket.send(message);
-      }
     },
+    connectSessionWebSocket({ state, commit, dispatch }){
+      const sessionWS = new WebSocket(`ws://${state.BASEURL}/ws/${state.sessionID}/session?client_type=web`);
+
+      sessionWS.onopen = () =>{
+        console.log("ran session WS onopen()")
+      };
+
+      sessionWS.onClose = () => {
+        console.log(`Closing session with id: ${state.SESSIONID}`)
+        commit('SET_SESSIONID', null)
+      };
+
+      sessionWS.onmessage = (event) => {
+        const message = event.data
+        // Do stuff related to session
+        // Like maybe change if a trial is processing etc.
+        commit('SET_RECEIVED_SESSION_MESSAGE', message)
+      };
+
+      commit('SET_SESSION_WEBSOCKET', sessionWS)
+
+    },
+    sendMessage({ state }, {message, session_id = null}) {
+        console.log(message)
+        const data = message
+        const id = session_id
+        // Send to session
+        if(id){
+          console.log(state.sessionWebSocket)
+          if (state.sessionWebSocket && state.connectionStatus ==='Connected'){
+            // TODO: Add logic to reconnect to this sessionID if it's not active-
+            console.log("sending to session")
+            state.sessionWebSocket.send(data)
+          }
+        // Send to general server.
+        } else {
+          if (state.webSocket && state.connectionStatus === 'Connected') {
+          state.webSocket.send(data);
+          }
+        }
+        
+      },
     getBASEURL({state}) {
       return state.BASEURL
     },

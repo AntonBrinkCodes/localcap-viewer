@@ -2,6 +2,8 @@ import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from './../components/HelloWorld.vue';
 import Vizualizer from '@/Vizualiser.vue'
 import App from '@/App.vue'
+import Calibration from '../components/Calibration.vue';
+import NewSession from '../components/NewSession.vue';
 const routes = [
   {
     path: '/',
@@ -18,7 +20,18 @@ const routes = [
     name: 'App',
     component: App,
   },
-  // Add other routes here
+  {
+    path: '/:id/calibration',
+    name: 'Calibration',
+    component: Calibration
+  },
+  {
+    path: '/:id/session',
+    name: 'NewSession',
+    component: NewSession
+    // Add other routes here
+  }
+  
 ];
 const BASE_URL = '/';
 const router = createRouter({

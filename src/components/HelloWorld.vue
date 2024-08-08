@@ -1,20 +1,30 @@
 <template>
   <div>
-    <h1>WebSocket Client</h1>
-    <p id="status">{{ connectionStatus }}</p>
-    <p id="clients">Web-apps connected: {{ clientsCount }}</p>
-    <p id="mobiles">Mobiles connected: {{ mobilesCount }}</p>
+    <v-card class="fill-height fill-width d-flex flex-column justify-space-between">
+      <v-card-text class="d-flex flex-column align-center flex-grow-1">
+        <v-row class="d-flex align-center flex-wrap fill-height w-100">
+          <v-col cols="12" md="6" class="d-flex flex-column justify-space-between my-1">
+            <div>
+              <h1 class="my-1"> Websocket Client  </h1>
+              <h1 class="my-1"> {{ connectionStatus }}</h1>
+              <h1 class="my-1">Web-apps connected: {{ clientsCount }}</h1>
+              <h1 class="my-1">Mobiles connected: {{ mobilesCount }}</h1>
+            </div>
+    
+          </v-col>
+          <!-- Start new Session button-->
+      <v-btn @click="startSession">
+        New Session
+      </v-btn>  
+        </v-row>
+      </v-card-text>
+    </v-card>
+    
     <h1>{{ msg }}</h1>
-    <!-- Conditionally rendered buttons in a flexbox container -->
-    <div v-if="mobilesCount >= 0" class="button-container">
-      <button @click="startRecording">Start Recording</button>
-      <button @click="stopRecording">Stop Recording</button>
-      <button @click="startSession"> Start Session</button>
-    </div>
-    <p>
-      <QRCodeVue3 :value="qrURL"></QRCodeVue3>
-    </p>
-    <div class="card">
+    
+      
+    
+      <div class="card">
       <button type="button" @click="count++">count is {{ count }}</button>
       <p>
         Edit
@@ -40,7 +50,6 @@ import {mapState, mapActions} from 'vuex';
 export default {
   name: 'Home',
   components: {
-    QRCodeVue3
   },
   computed: {
     ...mapState({
@@ -51,9 +60,6 @@ export default {
       BASEURL: state =>  state.BASEURL,
       sessionID: state => state.sessionID,
     }),
-    qrURL() {
-      return `ws://${this.BASEURL}/ws`;
-    }
   },
   methods: {
     ...mapActions(['sendMessage', 'getBASEURL']),
@@ -70,15 +76,15 @@ export default {
     async startSession(){
           // Create a session on the websocket and get the UUID for it.
       // This should also Commit UUID to state.
-      await this.$store.dispatch('createSessionOnServerlog', 'newSession')
-      //await this.$router.push(`/${this.$store.sessionID}/Calibration`)
-
-      // Check sessionID every 0.1 seconds
+      await this.$store.dispatch('createSessionOnServer', 'newSession')
+      //await this.$router.push(`javasc/${this.$store.sessionID}/Calibration`)
+      // Check sessionID every 0.1 seconds. Waiting for response from server basically.
       const checkSessionID = setInterval(() => {
         console.log("checking for SessionID")
         if (this.sessionID) {
           clearInterval(checkSessionID);
-          this.$router.push(`/${this.sessionID}/Calibration`);
+          this.$store.dispatch('connectSessionWebSocket')
+          this.$router.push(`/${this.sessionID}/session`);
         }
       }, 100);
       
