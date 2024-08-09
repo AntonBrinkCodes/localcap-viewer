@@ -2,7 +2,7 @@
 import { createStore } from 'vuex';
 
 //192.168.0.48
-const baseURL = "192.168.0.48:" //"130.229.132.75:" // Replace with where fastAPI backend is hosted. Perhaps should not be state
+const baseURL = "192.168.0.48:" //"130.229.132.75:" // Replace with where fastAPI backend is hosted. Perhaps should not be state but in env thing
 const port = "8080"
 
 export default createStore({
@@ -12,6 +12,7 @@ export default createStore({
     connectionStatus: 'Disconnected',
     clientsCount: 0,
     mobilesCount: 0,
+    sessionCameras: 0,
     receivedMessage: '',
     receivedSessionMessage: '',
     BASEURL: '',
@@ -33,6 +34,10 @@ export default createStore({
     },
     SET_MOBILES_COUNT(state, count) {
       state.mobilesCount = count;
+    },
+    SET_SESSION_CAMERAS(state, count){
+      console.log(`Setting sessionCameras to ${count}`)
+      state.sessionCameras = count;
     },
     SET_RECEIVED_MESSAGE(state, message) {
       state.receivedMessage = message;
@@ -97,16 +102,26 @@ export default createStore({
 
       sessionWS.onClose = () => {
         console.log(`Closing session with id: ${state.SESSIONID}`)
-        commit('SET_SESSIONID', null)
+        
+        //commit('SET_SESSIONID', null)
       };
 
       sessionWS.onmessage = (event) => {
         const message = event.data
+        console.log(`Message received in sessionWS: ${message}`)
+        console.log(state.sessionID)
+        if (message.startsWith(`Session ${state.sessionID} `)){
+          console.log(`message received from server: ${message}`)
         // Do stuff related to session
         // Like maybe change if a trial is processing etc.
+          if (message.startsWith(`Session ${state.sessionID} mobiles connected:`)){
+            commit('SET_SESSION_CAMERAS', parseInt(message.split(": ")[1]))
+          }
+        };
+      
+        
         commit('SET_RECEIVED_SESSION_MESSAGE', message)
       };
-
       commit('SET_SESSION_WEBSOCKET', sessionWS)
 
     },
@@ -115,7 +130,7 @@ export default createStore({
         const data = message
         const id = session_id
         // Send to session
-        if(id){
+        if(id==state.sessionID){
           console.log(state.sessionWebSocket)
           if (state.sessionWebSocket && state.connectionStatus ==='Connected'){
             // TODO: Add logic to reconnect to this sessionID if it's not active-
@@ -139,11 +154,16 @@ export default createStore({
     async createSessionOnServer({ state }, message){
       if (state.webSocket && state.connectionStatus === 'Connected') {
         await state.webSocket.send(message)
+      }      
+    },
+    disconnectSessionWebSocket({ state, commit }){
+      if(state.sessionWebSocket){
+        state.sessionWebSocket.close()
       }
-
+        commit('SET_SESSIONID', null)
       
+    },
 
-    }
   },
   modules: {}
 });

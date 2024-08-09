@@ -1,33 +1,78 @@
 <template>
+<MainLayout
+  column
+    leftButton="Back"
+    rightButton="Calibrate"
+    :step="2"
+    :rightDisabled="this.cameras>=1" 
+    @left="this.$router.push(`/${this.sessionID}/session`)"
+    @right="onNext">
 
-<v-card class="step-2-2 mt-4 flex-grow-1">
-      <v-card-title class="justify-center">
+<v-card class="step-2-2 mt-4 flex-grow-1 pa-4">
+  <v-row class="align-center">
+    <v-col cols="6" class="pr-4">
+      <v-card-title class="justify-center text-h6">
         Place a checkerboard in the scene
       </v-card-title>
-
-      <v-card-text class="d-flex align-center">
-        <ul class="flex-grow-1">  
+      <v-card-text class="d-flex flex-column text-left text-body-1">
+        <ul class="pl-4">
           <li>It should be visible by all cameras (nothing in the way of cameras' view when hitting Calibrate)</li>
           <li>It should be horizontal (longer side on the floor)</li>
-          <li>It should be perpendicular to the floor (not lying on the floor)</li>         
+          <li>It should be perpendicular to the floor (not lying on the floor)</li>
         </ul>
-          <div class="image-container pa-3">
-          <img src="/src/assets/images/checkerboard-placement.png"/>
-            <v-card-text class="d-flex align-center">
-              <ul class="flex-grow-1">
-                <legend> Example illustration </legend>
-              </ul>
-            </v-card-text>
-          </div>
-
       </v-card-text>
+    </v-col>
+
+    <v-col cols="6" class="pl-4">
+      <div class="image-container text-center">
+        <img src="/src/assets/images/checkerboard-placement.png" class="img-fluid" alt="Checkerboard Placement" style="max-width: 50%; height: auto;" />
+
+      </div>
+    </v-col>
+  </v-row>
+</v-card>
+
+    
+      <v-card class="step-2-2 mt-4 flex-grow-1 pa-4">
+      <v-row class="align center">
+
+      <v-col cols ="6" class="pr-4">
+      
+      <v-card-title class="align-center">
+        Provide the checkerboard details
+      </v-card-title>
+
+      <v-card-text class="d-flex align-center" >
+        <div class="d-flex flex-grow-1 align-center inputs">
+          <v-text-field
+            v-model="rows"
+            label="Rows"
+            class="mr-3"/>
+
+          <v-text-field
+            v-model="cols"
+            label="Columns"
+            class="mr-3"/>
+
+          <v-text-field
+            v-model="squareSize"
+            label="Square size (mm)"/>
+        </div>
+      </v-card-text>
+    </v-col>
+       <v-col cols = 6 class="pr-4">
+        <div class="image-container text-center">
+          <img src="/src/assets/images/checkerboard_45.png" class = "img-fluid" style = "max-width: 50%; height: auto;"/>
+        </div>
+      </v-col>
+      
+    </v-row>
+    </v-card>
       
     <!-- Debug Section -->
-    <v-divider class="my-4"></v-divider>
 
       <!-- Inner Card -->
-      <v-card-text class="step-2-2 mt-4 flex-grow-1 p-0" style="width: 80%;">
-        <v-divider class="my-4"></v-divider>
+      <v-card-text class="step-2-2 mt-4 flex-grow-1 p-0" style="width: 100%;">
 
         <v-card-title class="justify-center">DEBUG:</v-card-title>
         
@@ -53,18 +98,19 @@
         
       </v-card-text>
       
-    </v-card>
+    
+    </MainLayout>
 
 </template>
 
 <script>
 import { ref } from 'vue'
 import {mapState, mapActions} from 'vuex';
-
+import MainLayout from '/src/layout/MainLayout.vue'
 export default {
     name: 'Calibration',
     components: {
-      
+      MainLayout
     },
     data () {
         return {
@@ -75,15 +121,17 @@ export default {
       ...mapState({
       connectionStatus: 'connectionStatus',
       clientsCount: 'clientsCount',
-      mobilesCount: 'mobilesCount',
       recievedMessage: 'receivedMessage',
       BASEURL: state =>  state.BASEURL,
       sessionID: state => state.sessionID,
+      cameras: state => state.sessionCameras,
+
     }),
 
     },
     mounted (){
-
+      console.log(`SessionID is: ${this.sessionID}`)
+      console.log(`nr of cameras is: ${this.cameras}`)
     },
     methods: {
       ...mapActions(['sendMessage', 'getBASEURL']),
@@ -101,25 +149,52 @@ export default {
     stopRecording(){
       this.$store.dispatch('sendMessage', 'stop')
     },
+    onNext() {
+      console.log("onNext pressed")
+      // Move to next part (static trial recording)
+    },
 
     },
     setup() {
     const count = ref(0);
     const msg = ref("");
     //const BASEURL = store.state;
-    
     const inputMessage = ref('');
-
+    const rows = ref(4)
+    const cols = ref(5)
+    const squareSize = ref(35)
+    const calibrated = ref(false)
     return {
       count,
       msg,
       URL,
-      inputMessage, // Bind the input to the message
+      rows,
+      cols,
+      squareSize,
+      calibrated,
+      inputMessage, // FOR DEBUG
     };
   },
 }
     
-
-
-
 </script>
+
+<style lang="scss">
+.step-2-1 {
+  li {
+    font-size: 24px;
+
+    &:not(:last-child) {
+      margin-bottom: 24px;
+    }
+  }
+}
+
+.step-2-2 {
+  .inputs {
+    > * {
+      flex: 0 0 150px;
+    }
+  }
+}
+</style>

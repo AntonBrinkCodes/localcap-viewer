@@ -74,6 +74,13 @@ export default {
       this.$store.dispatch('sendMessage', 'stop')
     },
     async startSession(){
+      if(this.sessionID || this.$store.state.sessionWebSocket){
+        console.log("Removing old session")
+        // remove session ID and disconnect session websockets
+
+        this.$store.dispatch('disconnectSessionWebSocket')
+        
+      }
           // Create a session on the websocket and get the UUID for it.
       // This should also Commit UUID to state.
       await this.$store.dispatch('createSessionOnServer', 'newSession')
