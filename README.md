@@ -7,7 +7,6 @@ LocalCap Viewer is a web application written in Vue 3, Node.js, and Vuetify. Thi
 - **Web-Based Control Interface:** Start, stop, and manage video recordings from your browser.
 - **Real-Time Communication:** Uses WebSockets to communicate with the LocalCap app and the server running OpenCap locally.
 - **Session and Trial Management:** View and manage processed sessions and trials (Work in Progress).
-- **Responsive Design:** Built with Vuetify for a clean and responsive user interface.
 
 ## Installation
 
