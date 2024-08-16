@@ -35,7 +35,7 @@ This will start the web application on http://localhost:8080 by default.
 
 - Follow the instructions provided in the [opencap-core-local](https://github.com/AntonBrinkCodes/opencap-core-local) repository to set up and run the server locally on your Ubuntu or Windows machine.
 
-- Change the BASEURL and port parameters in store to match where [opencap-core-local](https://github.com/AntonBrinkCodes/opencap-core-local) is hosted.
+- Change the baseURL and port constants in store to match where you are hosting [opencap-core-local](https://github.com/AntonBrinkCodes/opencap-core-local).
 
 - Ensure your [LocalCap app](https://github.com/AntonBrinkCodes/LocalCap/tree/main) is running and your macOS device is on the same network as your server running the opencap-core-local.
 
