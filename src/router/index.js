@@ -4,6 +4,7 @@ import Vizualizer from '@/Vizualiser.vue'
 import App from '@/App.vue'
 import Calibration from '../components/Calibration.vue';
 import NewSession from '../components/NewSession.vue';
+import Neutral from '../components/Neutral.vue'
 const routes = [
   {
     path: '/',
@@ -29,8 +30,12 @@ const routes = [
     path: '/:id/session',
     name: 'NewSession',
     component: NewSession
-    // Add other routes here
-  }
+  },
+  {
+    path: '/:id/neutral',
+    name: 'Neutral',
+    component: Neutral
+  },
   
 ];
 const BASE_URL = '/';
