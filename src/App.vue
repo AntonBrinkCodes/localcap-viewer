@@ -7,15 +7,60 @@
     <RouterLink to="/">Go to Home</RouterLink>
     <RouterLink to="/vizualiser">Go to vizualiser</RouterLink>
   </nav>
-  </template>
+
+  <v-snackbar
+      v-model="showSnackbar"
+      :timeout="5000"
+      :color = "this.toastType"
+    >
+      {{ snackbarMessage }}
+
+      <template v-slot:action="{ attrs }">
+        <v-btn
+          color="blue"
+          text
+          v-bind="attrs"
+          @click="showSnackbar = false"
+        >
+          Close
+        </v-btn>
+      </template>
+    </v-snackbar>
+
+
+</template>
   
   <script>
+  import { mapState } from 'vuex';
+
   export default {
     name: 'App',
+    data() {
+      return {
+        showSnackbar: false,
+        snackbarMessage: '',
+      };
+    },
+    computed: {
+      ...mapState(['toastMessage', 'toastType'])
+    },
+    watch: {
+      toastMessage(newMessage) {
+        this.showToast(newMessage)
+        console.log(this.toastType)
+      },
+    },
+    methods: {
+      showToast(message) {
+        this.snackbarMessage = message.length > 50 ? message.substring(0, 47) + '...' : message; // Truncate long messages
+        this.showSnackbar = true;
+      },
+    },
     created() {
       this.$store.dispatch('connectWebSocket');
     }
   };
+  
   </script>
   
   <style lang="scss" scoped>
@@ -53,5 +98,11 @@
     background-color: #333;
     color: #fff;
   }
+
+  .v-snackbar {
+  max-width: 80%; /* Limit width */
+  white-space: normal; /* Wrap text */
+  font-size: 14px; /* Adjust font size */
+}
   </style>
   

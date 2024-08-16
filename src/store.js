@@ -1,8 +1,8 @@
 // src/store.js
 import { createStore } from 'vuex';
 
-//192.168.0.48
-const baseURL = "192.168.0.48:" //"130.229.132.75:" // Replace with where fastAPI backend is hosted. Perhaps should not be state but in env thing
+//192.168.0.48 home
+const baseURL = "130.229.141.43:" //(MAC IN EDUROAM?) // "130.229.141.43:" (LINUX) // Replace with where fastAPI backend is hosted. Perhaps should not be state but in env thing
 const port = "8080"
 
 export default createStore({
@@ -17,6 +17,8 @@ export default createStore({
     receivedSessionMessage: '',
     BASEURL: '',
     sessionID: '',
+    toastMessage: '',
+    toastType: 'info',
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
@@ -52,6 +54,14 @@ export default createStore({
       state.sessionID = message;
       console.log(`session ID in state is: ${state.sessionID}`)
     },
+    SET_TOASTMESSAGE(state, message){
+      console.log("changing toastMessage")
+      state.toastMessage = message
+    },
+    SET_TOASTTYPE(state, type) {
+      state.toastType = type.toLowerCase()
+      console.log(state.toastType)
+    },
   },
   actions: {
     connectWebSocket({ state, commit, dispatch }) {
@@ -73,7 +83,7 @@ export default createStore({
           commit('SET_CLIENTS_COUNT', parseInt(message.split(": ")[1]));
           commit('SET_MOBILES_COUNT', parseInt(message.split(": ")[2]))         
         } else if (message.startsWith("New session id:")){
-          commit('SET_SESSIONID', message.split(": ")[1])
+          commit('SET_SESSIONID', message.split(": ")[1].trimEnd())
 
         }
          else {
@@ -105,7 +115,7 @@ export default createStore({
         
         //commit('SET_SESSIONID', null)
       };
-
+      // TODO: rewrite this to work on JSON :)
       sessionWS.onmessage = (event) => {
         const message = event.data
         console.log(`Message received in sessionWS: ${message}`)
@@ -116,8 +126,13 @@ export default createStore({
         // Like maybe change if a trial is processing etc.
           if (message.startsWith(`Session ${state.sessionID} mobiles connected:`)){
             commit('SET_SESSION_CAMERAS', parseInt(message.split(": ")[1]))
-          }
-        };
+          } 
+        } else if (message.startsWith("Toast")){
+          console.log("message starts with Toast")
+          // Send from server via session specific websocket with some info regarding the session.
+          dispatch('triggerToast', message)
+        }
+        ;
       
         
         commit('SET_RECEIVED_SESSION_MESSAGE', message)
@@ -162,6 +177,13 @@ export default createStore({
       }
         commit('SET_SESSIONID', null)
       
+    },
+    triggerToast({ state, commit} , message){
+      const msgType = message.split(": ")[1]
+      
+      const msgPart = message.split(": ").slice(2).join(": ")
+      commit('SET_TOASTTYPE', msgType)
+      commit('SET_TOASTMESSAGE', msgPart)
     },
 
   },

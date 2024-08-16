@@ -4,7 +4,7 @@
     leftButton="Back"
     rightButton="Calibrate"
     :step="2"
-    :rightDisabled="this.cameras>=1" 
+    :rightDisabled="this.cameras>=2" 
     @left="this.$router.push(`/${this.sessionID}/session`)"
     @right="onNext">
 
@@ -57,8 +57,20 @@
           <v-text-field
             v-model="squareSize"
             label="Square size (mm)"/>
+
+          <v-select 
+            v-model="placement"
+            :items="items" 
+            item-title="name" 
+            label="placement"
+          >
+            <template v-slot:item="{ props, item }">
+                <v-list-item v-bind="props" :subtitle="item.raw.descr"></v-list-item>
+            </template>
+          </v-select>
         </div>
       </v-card-text>
+
     </v-col>
        <v-col cols = 6 class="pr-4">
         <div class="image-container text-center">
@@ -107,16 +119,25 @@
 import { ref } from 'vue'
 import {mapState, mapActions} from 'vuex';
 import MainLayout from '/src/layout/MainLayout.vue'
+
 export default {
     name: 'Calibration',
     components: {
       MainLayout
     },
-    data () {
-        return {
-
-        }
-    },
+    data: () =>({
+        items: [
+          {
+            name: 'backwall',
+            descr: 'default'
+          },
+          {
+            name: 'ground',
+            descr: 'experimental' 
+          },
+        ],
+        placement: null, // Set to backwall in created()
+    }),
     computed: {
       ...mapState({
       connectionStatus: 'connectionStatus',
@@ -127,7 +148,9 @@ export default {
       cameras: state => state.sessionCameras,
 
     }),
-
+    },
+    created (){
+      this.placement = this.items[0].name;
     },
     mounted (){
       console.log(`SessionID is: ${this.sessionID}`)
@@ -151,6 +174,21 @@ export default {
     },
     onNext() {
       console.log("onNext pressed")
+      console.log(this.placement)
+      const calibMessage = {
+        session: this.sessionID,
+        command: 'start_calibration',
+        rows: this.rows,
+        cols: this.cols,
+        squareSize: this.squareSize,
+        placement: this.placement,
+      };      
+
+      console.log(JSON.stringify(calibMessage))
+      this.$store.dispatch('sendMessage', {
+        message: JSON.stringify(calibMessage),
+        session_id: this.sessionID
+      })
       // Move to next part (static trial recording)
     },
 
