@@ -1,8 +1,9 @@
 // src/store.js
 import { createStore } from 'vuex';
-
+import data from '@/store/data'
 //192.168.0.48 home
-const baseURL = "130.229.141.43:"
+//const baseURL = "130.229.141.43:" 
+const baseURL = "192.168.50.9:" // Landet: Remove :)
 //const baseURL = "192.168.0.48:" //(MAC IN EDUROAM?) // "130.229.141.43:" (LINUX) // Replace with where fastAPI backend is hosted. Perhaps should not be state but in env thing
 const port = "8080"
 
@@ -89,6 +90,11 @@ export default createStore({
         }
          else {
           commit('SET_RECEIVED_MESSAGE', message);
+          // handle message as json:
+          const jsonMessage = JSON.parse(message)
+          if (jsonMessage.command=="subjects") {
+            commit('data/SET_SUBJECTS', jsonMessage.content)
+          }
         }
       };
 
@@ -188,5 +194,7 @@ export default createStore({
     },
 
   },
-  modules: {}
+  modules: {
+    data
+  }
 });
