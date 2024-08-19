@@ -182,6 +182,7 @@ export default {
         cols: this.cols,
         squareSize: this.squareSize,
         placement: this.placement,
+        
       };      
 
       console.log(JSON.stringify(calibMessage))
@@ -189,7 +190,8 @@ export default {
         message: JSON.stringify(calibMessage),
         session_id: this.sessionID
       })
-      // Move to next part (static trial recording)
+      // Wait for response from server and then move to next part (static trial recording)
+      
     },
 
     },
