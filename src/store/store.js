@@ -138,8 +138,15 @@ export default createStore({
           console.log("message starts with Toast")
           // Send from server via session specific websocket with some info regarding the session.
           dispatch('triggerToast', message)
+        } else { // Assume it's a JSON.
+              const jsonMessage = JSON.parse(message)
+
+              if (jsonMessage.command=="calibration"){ //Messages regarding calibration
+                const success = jsonMessage.content.match("success")
+                commit('data/SET_CALIBRATED', success )
+              }
         }
-        ;
+
       
         
         commit('SET_RECEIVED_SESSION_MESSAGE', message)
