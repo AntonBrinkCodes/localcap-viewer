@@ -12,6 +12,9 @@ import * as directives from 'vuetify/directives'
 import '@/assets/main.scss'
 import '@mdi/font/css/materialdesignicons.css'  
 import { aliases, mdi } from 'vuetify/iconsets/mdi'
+import 'roboto-fontface/css/roboto/roboto-fontface.css'
+
+import '@fortawesome/fontawesome-free/css/all.css';
 
 
 // Components
@@ -43,6 +46,21 @@ const vuetify = createVuetify({
           // Define additional colors as needed
         },
       },
+      typography: {
+        // Define font sizes to match Vuetify 2 settings
+        body1: { fontSize: '16px', fontFamily: 'Roboto, Arial, sans-serif' },
+        h1: { fontSize: '2rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        h2: { fontSize: '1.75rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        h3: { fontSize: '1.5rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        h4: { fontSize: '1.25rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        h5: { fontSize: '1rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        h6: { fontSize: '0.875rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        subtitle1: { fontSize: '0.875rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        subtitle2: { fontSize: '0.75rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        button: { fontSize: '0.875rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        caption: { fontSize: '0.75rem', fontFamily: 'Roboto, Arial, sans-serif' },
+        overline: { fontSize: '0.75rem', fontFamily: 'Roboto, Arial, sans-serif' }
+      }
     },
   },
 });
