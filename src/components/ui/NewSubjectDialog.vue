@@ -138,7 +138,7 @@
   
   <script>
   import { mapState, mapActions } from 'vuex';
-  import { Form, Field, ErrorMessage } from 'vee-validate';
+  import { useForm, Form, Field, ErrorMessage } from 'vee-validate';
   import { rules } from '@/validation';
   
   export default {
