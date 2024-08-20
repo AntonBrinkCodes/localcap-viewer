@@ -12,7 +12,8 @@ export default {
             id: '',
             trials: []
         },
-        
+        calibrated: false,
+
         trial : {
             id: '',
             trialName: '',
@@ -79,5 +80,8 @@ export default {
         SET_SUBJECTS(state, subjects){
             state.subjects = subjects
         },
+        SET_CALIBRATED(state, calibrated){
+            state.calibrated = calibrated
+        }
     }
 }
