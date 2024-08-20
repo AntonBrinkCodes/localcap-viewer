@@ -8,13 +8,15 @@
         @left="this.$router.push(`/${this.sessionID}/calibration`)"
         @right="onNext">
     
-    
-        <v-card class="mb-4">
+<div class="step-4-1 d-flex flex-column">
+
+    <v-card class="mb-4">
     <v-card-title class="justify-center subject-title">
       Session Info
     </v-card-title>
     <v-card-text>
       <v-row >
+       
         <v-col cols="11">
           <v-autocomplete
             ref="selectSubjectsRef"
@@ -34,11 +36,10 @@
             <template v-slot:selection>{{ subject.name }}</template>
           </v-autocomplete>
         </v-col>
-        <v-col>
-            <v-btn>
+        <v-col cols = "11">
+            <v-btn @click=openNewSubjectPopup>
                 <v-icon icon="mdi-plus" />
-            </v-btn>
-                   
+            </v-btn>   
         </v-col>
        
       </v-row>
@@ -58,14 +59,64 @@
 
     </v-card-text>
   </v-card>
+</div>
+  <v-card class="step-4-2 ml-4 d-flex images-box">
 
-    
-      
-    </MainLayout>
-<NewSubjectDialog
+<v-card class="mb-0">
+  <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
+  <p>{{ 0 }} of {{ this.cameras }} videos uploaded</p>
+  </v-card-text>
+</v-card>
+
+<v-card-title class="justify-center">
+  Record neutral pose
+</v-card-title>
+<v-card-text class="d-flex justify-center align-center">
+  <div class="d-flex flex-column mr-4">
+    <ul>
+      <li>
+        The subject should adopt the example neutral pose
+        <ul>
+          <li class="space-above-small">Upright standing posture with feet pointing forward</li>
+          <li class="space-above-small">Straight back and no bending or rotation at the hips, knees, or ankles</li>
+        </ul>
+      </li>
+      <li class="space-above-small">The subject should stand still</li>
+      <li class="space-above-small">
+        The subject should be visible by all cameras 
+        <ul>
+          <li class="space-above-small">Nothing in the way
+            of cameras view when hitting Record</li>
+        </ul>
+      </li>
+    </ul>
+  </div>
+  <div class="d-flex flex-column align-center ">
+    <span class="sub-header" style="font-size: 18px;">Example neutral pose</span>
+    <ExampleImage
+      image="/images/step-4/big_good_triangle.jpg"
+      :width="256"
+      :height="341"
+      good
+    />
+  </div>
+</v-card-text>
+<v-card-title class="justify-center" style="font-size: 18px; word-break: keep-all;">
+  If the subject cannot adopt the example neutral pose, select "Any pose" scaling setup under Advanced Settings
+</v-card-title>
+
+</v-card>
+
+
+
+  <NewSubjectDialog ref = "subjectDialogRef"
         v-if="showNewSubjectDialog"
             @close-dialog="showNewSubjectDialog = false"
         />
+    
+      
+</MainLayout>
+
 
 
 </template>
@@ -105,10 +156,11 @@ export default {
             showNewSubjectDialog: false,
         };
     },
+    
     computed: {
         ...mapState({
             sessionID: state => state.sessionID,
-            cameras: state => state.cameras,
+            cameras: state => state.mobilesCount,
         }),
         ...mapState('data', {
             subjects: state => state.subjects,
@@ -141,7 +193,7 @@ export default {
     methods: {
         onNext() {
             console.log('onNext pressed');
-            //this.loadSubjectsList(false);
+            this.loadSubjectsList(false);
         },
         async loadSubjectsList(append_result = false) {
             console.log('loading subjects:', this.subject_search, ' - ', append_result);
