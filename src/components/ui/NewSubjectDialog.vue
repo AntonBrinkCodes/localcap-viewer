@@ -151,7 +151,21 @@
     },
     setup() {
       const form = useForm(); // Initialize the form validation
-      return { form };
+      const openDialog = () => {
+        this.edit_dialog = true;
+        this.edited_subject = { ...this.empty_subject };
+        this.formErrors = {
+          name: null,
+          weight: null,
+          height: null,
+          birth_year: null,
+          //subject_tags: null
+        };
+        console.log('add subject');
+      }
+      return { form, openDialog };
+
+      
     },
     data() {
       return {
@@ -185,7 +199,7 @@
           height: null,
           birth_year: null,
           //subject_tags: null
-        }
+        },
       };
     },
     computed: {
@@ -207,7 +221,7 @@
     },
     mounted() {
       console.log('SubjectDialog mounted');
-      //this.loadSubjectTags();
+      //this.loadSubjectTags
     },
     methods: {
       ...mapActions('data', ['loadSubjects', 'loadSubjectTags']),
@@ -294,7 +308,7 @@
           weight: null,
           height: null,
           birth_year: null,
-          //ssubject_tags: null
+          //subject_tags: null
         };
         console.log('add subject');
       }
