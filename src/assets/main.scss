@@ -10,9 +10,9 @@
   height: 100%;
 }
 
-//.scroll-y {
-  //overflow-y: auto;
-//}
+.scroll-y {
+  overflow-y: auto;
+}
 
 .sub-header {
   font-size: 1.25rem;
@@ -62,10 +62,15 @@
   cursor: pointer;
 }
 
-//html {
-  //overflow-y: hidden;
-//}
+html {
+  overflow-y: hidden;
+}
 
 .warning-toast {
   background-color: darkorange !important;
+}
+
+body {
+  font-family: 'Roboto', Arial, sans-serif !important;
+  font-size: 16px !important; // or your default font size
 }
