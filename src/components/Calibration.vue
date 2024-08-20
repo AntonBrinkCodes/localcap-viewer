@@ -138,6 +138,13 @@ export default {
         ],
         placement: null, // Set to backwall in created()
     }),
+    watch: {
+      calibrated(isIt){ // If session is calibrated then move on to neutral.
+        if (isIt){
+          this.$router.push(`/${this.sessionID}/neutral`)
+        }
+      }
+    },
     computed: {
       ...mapState({
       connectionStatus: 'connectionStatus',
@@ -146,8 +153,11 @@ export default {
       BASEURL: state =>  state.BASEURL,
       sessionID: state => state.sessionID,
       cameras: state => state.sessionCameras,
-
+      
     }),
+    ...mapState('data',{
+        calibrated: state => state.calibrated,
+      })
     },
     created (){
       this.placement = this.items[0].name;
@@ -191,7 +201,8 @@ export default {
         session_id: this.sessionID
       })
       // Wait for response from server and then move to next part (static trial recording)
-      
+      if (this.scalibrated)
+        this.$router.push(`/${this.sessionID}/neutral`);
     },
 
     },
@@ -203,7 +214,6 @@ export default {
     const rows = ref(4)
     const cols = ref(5)
     const squareSize = ref(35)
-    const calibrated = ref(false)
     return {
       count,
       msg,
@@ -211,7 +221,6 @@ export default {
       rows,
       cols,
       squareSize,
-      calibrated,
       inputMessage, // FOR DEBUG
     };
   },
