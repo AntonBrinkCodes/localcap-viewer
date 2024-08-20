@@ -10,81 +10,62 @@
     
     
         <v-card class="mb-4">
-        <v-card-title class="justify-center subject-title">
-          Session Info
-        </v-card-title>
-          <v-card-text>
-            <v-row align="center">
-              <v-col cols="11">
-                <v-autocomplete
-                  ref="selectSubjectsRef"
-                  required
-                  v-model="subject"
-                  item-title="name"
-                  item-value="id"
-                  label="Subject"
-                  :items="loaded_subjects"
-                  :loading="subject_loading"
-                  :search-input.sync="subject_search"
-                  return-object
-                >
-                  <template v-slot:append-item>
-                    <div v-intersect="loadNextSubjectsListPage" />
-                  </template>
-                  <template v-slot:selection>{{ subject.name }}</template>
-                </v-autocomplete>
+    <v-card-title class="justify-center subject-title">
+      Session Info
+    </v-card-title>
+    <v-card-text>
+      <v-row >
+        <v-col cols="11">
+          <v-autocomplete
+            ref="selectSubjectsRef"
+            required
+            v-model="subject"
+            item-title="name"
+            item-value="id"
+            label="Subject"
+            :items="loaded_subjects"
+            :loading="subject_loading"
+            :search-input.sync="subject_search"
+            return-object
+          >
+            <template v-slot:append-item>
+              <div v-intersect="loadNextSubjectsListPage" />
+            </template>
+            <template v-slot:selection>{{ subject.name }}</template>
+          </v-autocomplete>
+        </v-col>
+        <v-col>
+            <v-btn>
+                <v-icon icon="mdi-plus" />
+            </v-btn>
+                   
+        </v-col>
+       
+      </v-row>
+      
+      <v-row class="mt-3"> <!-- Added this row -->
+        <v-col cols="11">
+          <v-text-field
+            v-model="sessionName"
+            label="Session Name (optional)"
+            type="text"
+            required
+            :error="formErrors.name != null"
+            :error-messages="formErrors.name"
+          ></v-text-field>
+        </v-col>
+      </v-row>
 
-<!--                <v-select-->
-<!--                    ref="selectSubjectsRef"-->
-<!--                    @click="reloadSubjects"-->
-<!--                    @input="isAllInputsValidSelectSubject"-->
-<!--                    class="cursor-pointer"-->
-<!--                    required-->
-<!--                    v-model="subject"-->
-<!--                    item-text="display_name"-->
-<!--                    item-value="id"-->
-<!--                    label="Subject"-->
-<!--                    :items="subjectSelectorChoices"-->
-<!--                    return-object-->
-<!--                ></v-select>-->
-              </v-col>
-              <v-col cols="1">
-                <v-btn
-                  icon
-                  @click="openNewSubjectPopup"
-                  style="background-color: red; border: 1px solid blue;">
-                  <v-icon>mdi-plus</v-icon>
-                </v-btn>
-              </v-col>
-            </v-row>
-            <v-text-field
-              v-model="sessionName"
-              label="Session Name (optional)"
-              type="text"
-              required
-              :error="formErrors.name != null"
-              :error-messages="formErrors.name"
-            ></v-text-field>
-<!--            <div>-->
-<!--              <ul>-->
-<!--                <li>loaded_subjects: {{ loaded_subjects }}</li>-->
-<!--                <li>subject: {{ subject }}</li>-->
-<!--                <li>subject_loading: {{ subject_loading }}</li>-->
-<!--                <li>subject_search: {{ subject_search }}</li>-->
+    </v-card-text>
+  </v-card>
 
-<!--                <li>sessionName: {{ sessionName }}</li>-->
-<!--              </ul>-->
-
-<!--            </div>-->
-          </v-card-text>
-      </v-card>
     
-      <NewSubjectDialog
+      
+    </MainLayout>
+<NewSubjectDialog
         v-if="showNewSubjectDialog"
             @close-dialog="showNewSubjectDialog = false"
         />
-
-    </MainLayout>
 
 
 </template>

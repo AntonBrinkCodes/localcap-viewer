@@ -1,20 +1,71 @@
-html, body, #app {
+.w-50 {
+  width: 50%;
+}
+
+.w-100 {
+  width: 100%;
+}
+
+.h-100 {
+  height: 100%;
+}
+
+//.scroll-y {
+  //overflow-y: auto;
+//}
+
+.sub-header {
+  font-size: 1.25rem;
+  color: white;
+  font-weight: 500;
+  line-height: 2;
+}
+
+.image-container, .image-container-w-100 {
+  background-color: white;
+  border-radius: 8px;
+
+  img {
+    width: 100%;
     height: 100%;
-    margin: 0;
-    padding: 0;
+    object-fit: cover
   }
-  
-  .fill-height {
-    height: 100vh;
-  }
-  
-  .fill-width {
-    width: 100vw;
-  }
-  
-  .v-card {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-  }
+}
+
+.image-container {
+  height: 200px;
+}
+
+.image-container-round {
+  border-radius: 4px;
+  line-height: 0;
+  overflow: hidden;
+}
+
+.toasted {
+  font-family: Roboto, sans-serif;
+}
+
+.justify-content-evenly {
+  justify-content: space-evenly;
+}
+
+.justify-content-between {
+  justify-content: space-between;
+}
+
+.m-0 {
+  margin: 0 !important;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+//html {
+  //overflow-y: hidden;
+//}
+
+.warning-toast {
+  background-color: darkorange !important;
+}

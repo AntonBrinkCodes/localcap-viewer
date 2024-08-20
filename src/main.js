@@ -10,6 +10,8 @@ import * as components from 'vuetify/components'
 import * as directives from 'vuetify/directives'
 //import Vuetify from 'vuetify'
 import '@/assets/main.scss'
+import '@mdi/font/css/materialdesignicons.css'  
+import { aliases, mdi } from 'vuetify/iconsets/mdi'
 
 
 // Components
@@ -17,6 +19,13 @@ import App from './App.vue'
 const vuetify = createVuetify({
   components,
   directives,
+  icons: {
+    defaultSet: 'mdi',  // Use Material Design Icons
+    aliases,
+    sets: {
+      mdi
+    }
+  },
   theme: {
     defaultTheme: 'dark',
     themes: {

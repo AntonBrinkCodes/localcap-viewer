@@ -251,7 +251,6 @@
         };
   
         console.log('edit_dialog=', this.edit_dialog);
-  
         // Uncomment and update with your API call
         /*if (this.edited_subject.id) {
           try {

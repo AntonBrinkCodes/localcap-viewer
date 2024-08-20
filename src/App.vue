@@ -73,22 +73,21 @@
   }
   
   .app-container {
-    display: flex;
-    flex-direction: row;
-    height: 100%;
-    width: 100%;
-    justify-content: space-between;
-    align-items: center;
-    overflow: hidden;
-  }
-  
-  .router-view-content {
-    flex-grow: 1;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    width: 100%;
-  }
+  display: flex;
+  flex-direction: column; /* Change to column if the layout should be vertical */
+  height: 100%;
+  width: 100%;
+  justify-content: center; /* Center horizontally if needed */
+  align-items: center; /* Center vertically if needed */
+}
+
+.router-view-content {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
   
   .navigation {
     display: flex;
