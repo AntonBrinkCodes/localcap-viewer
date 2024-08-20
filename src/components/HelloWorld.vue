@@ -1,4 +1,15 @@
 <template>
+  <MainLayout
+    column
+    leftButton="Back"
+    rightButton="Calibrate"
+    :step="2"
+    :rightDisabled="this.cameras>=2"
+    :leftDisabled="true"
+    @left="this.$router.push(`/`)"
+    @right="startSession">
+
+
   <div>
     <v-card class="fill-height fill-width d-flex flex-column justify-space-between">
       <v-card-text class="d-flex flex-column align-center flex-grow-1">
@@ -19,37 +30,20 @@
         </v-row>
       </v-card-text>
     </v-card>
-    
-    <h1>{{ msg }}</h1>
-    
-      
-    
-      <div class="card">
-      <button type="button" @click="count++">count is {{ count }}</button>
-      <p>
-        Edit
-        <code>components/HelloWorld.vue</code> to test HMR
-      </p>
-      <p>
-        <strong>Current route path:</strong> {{ $route.fullPath }}
-      </p>
-      </div>
-
-      <div class="message-container">
-      <input type="text" v-model="inputMessage" placeholder="Type your message..." />
-      <button @click="sendMessage">Send</button>
-    </div>
   </div>
+</MainLayout>
+
 </template>
 
 <script>
 import { ref } from 'vue'
 import QRCodeVue3 from "qrcode-vue3";
 import {mapState, mapActions} from 'vuex';
-
+import MainLayout from '../layout/MainLayout.vue';
 export default {
   name: 'Home',
   components: {
+    MainLayout
   },
   computed: {
     ...mapState({
