@@ -1,6 +1,5 @@
 <template>
     <MainLayout
-        column
         leftButton="Back"
         rightButton="Record Neutral"
         :step="4"
@@ -61,15 +60,16 @@
 
     </v-card-text>
   </v-card>
-<v-card class="mb-4">
+
+    <v-card class="mb-4">
         <div class="d-flex justify-center">
           <v-card-title class="justify-center data-title">
             Data sharing agreement
           </v-card-title>
+
           <v-btn
             icon
           ><v-icon icon="mdi-help-circle-outline" />
-            
 
             <v-tooltip
                 activator="parent"
@@ -77,70 +77,99 @@
             >The information on this page as well as videos of your movement are
             uploaded to your own computer / where you host the local backend.
             Remember to get informed consent and ask your patient about data sharing.</v-tooltip>
-    </v-btn>
-          <!--<v-tooltip bottom="">
-            <template v-slot:activator="{ on }">
-              <v-icon v-on="on"> mdi-help-circle-outline </v-icon>
-            </template>
-            
-          </v-tooltip>-->
+            </v-btn>
         </div>
-      </v-card>
+        <v-card-text class="d-flex flex-column align-left checkbox-wrapper">
+                <div class="d-flex flex-column checkbox-box">
+                  <v-checkbox
+                    v-model="data_sharing_0"
+                    @click="isInputValid"
+                    :label="labelText"
+                    :rules="[checkboxRule]"
+                    required
+                  ></v-checkbox>
+                </div>
+            </v-card-text>
+    </v-card>
+
+    <div class="d-flex justify-center">
+        <div class="text-center">
+          <v-btn
+            color="primary-dark"
+            class="mt-4 mb-4 ml-4 mr-4"
+            x-large
+            @click="isInputValid"
+          >
+            Advanced Settings
+            <v-tooltip
+                activator="parent"
+                location="bottom">
+            TO BE IMPLEMENTED
+                </v-tooltip>
+          </v-btn>
+        </div>
+    </div>
+
+    
+    
+    
 </div>
 
 <v-card class="step-4-2 ml-4 d-flex images-box">
 
-<v-card class="mb-0">
-  <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
-  <p>{{ 0 }} of {{ this.cameras }} videos uploaded</p>
-  </v-card-text>
+    <v-card class="mb-0">
+      <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
+      <p>{{ 0 }} of {{ this.cameras }} videos uploaded</p>
+      </v-card-text>
+    </v-card>
+
+    <v-card-title class="justify-center">
+        Record neutral pose
+    </v-card-title>
+    <v-card-text class="d-flex justify-center align-center">
+    <div class="d-flex flex-column mr-4">
+      <ul>
+        <li>
+          The subject should adopt the example neutral pose
+          <ul>
+            <li class="space-above-small">Upright standing posture with feet pointing forward</li>
+            <li class="space-above-small">Straight back and no bending or rotation at the hips, knees, or ankles</li>
+          </ul>
+        </li>
+        <li class="space-above-small">The subject should stand still</li>
+        <li class="space-above-small">
+          The subject should be visible by all cameras 
+          <ul>
+            <li class="space-above-small">Nothing in the way
+              of cameras view when hitting Record</li>
+          </ul>
+        </li>
+      </ul>
+    </div>
+    <div class="d-flex flex-column align-center ">
+      <span class="sub-header" style="font-size: 18px;">Example neutral pose</span>
+      <ExampleImage
+        image="/src/assets/images/big_good_triangle.jpg"
+        :width="256"
+        :height="341"
+        good
+      />
+    </div>
+    </v-card-text>
+    <v-card-title class="justify-center" style="font-size: 18px; word-break: break-all;">
+      If the subject cannot adopt the example neutral pose, select "Any pose" scaling setup under Advanced Settings
+    </v-card-title>
+
 </v-card>
 
-<v-card-title class="justify-center">
-  Record neutral pose
-</v-card-title>
-<v-card-text class="d-flex justify-center align-center">
-  <div class="d-flex flex-column mr-4">
-    <ul>
-      <li>
-        The subject should adopt the example neutral pose
-        <ul>
-          <li class="space-above-small">Upright standing posture with feet pointing forward</li>
-          <li class="space-above-small">Straight back and no bending or rotation at the hips, knees, or ankles</li>
-        </ul>
-      </li>
-      <li class="space-above-small">The subject should stand still</li>
-      <li class="space-above-small">
-        The subject should be visible by all cameras 
-        <ul>
-          <li class="space-above-small">Nothing in the way
-            of cameras view when hitting Record</li>
-        </ul>
-      </li>
-    </ul>
-  </div>
-  <div class="d-flex flex-column align-center ">
-    <span class="sub-header" style="font-size: 18px;">Example neutral pose</span>
-    <ExampleImage
-      image="/images/step-4/big_good_triangle.jpg"
-      :width="256"
-      :height="341"
-      good
+
+
+  <!-- Include the Dialog component -->
+  <NewSubjectDialog
+      v-model="showDialog"
+      @subject-added="submitAddSubject"
+      @subject-updated="handleSubjectUpdated"
     />
-  </div>
-</v-card-text>
-<v-card-title class="justify-center" style="font-size: 18px; word-break: keep-all;">
-  If the subject cannot adopt the example neutral pose, select "Any pose" scaling setup under Advanced Settings
-</v-card-title>
-
-</v-card>
-
-
-
-  <NewSubjectDialog ref = "subjectDialogRef"
-        v-if="showNewSubjectDialog"
-            @close-dialog="showNewSubjectDialog = false"
-        />
     
       
 </MainLayout>
@@ -155,7 +184,7 @@
 import { ref } from 'vue'
 import { mapState } from 'vuex'
 import MainLayout from '/src/layout/MainLayout.vue'
-import NewSubjectDialog from '@/components/ui/NewSubjectDialog.vue'
+import NewSubjectDialog from './ui/NewSubjectDialog.vue'
 import ExampleImage from './ui/ExampleImage.vue';
 
 export default {
@@ -170,6 +199,7 @@ export default {
     },
     data() {
         return {
+            showDialog: false,
             formErrors: {
                 name: null,
                 weight: null,
@@ -184,6 +214,8 @@ export default {
             loaded_subjects: [],
             subject_query: "",
             showNewSubjectDialog: false,
+            data_sharing_0: false,
+            labelText: 'The subject acknowledges that the recorded videos and processed data will be stored in the manner you have chosen locally. The subject has been fully informed of the storage method and has provided consent for the use of their recordings in accordance with the agreed-upon purposes.',
         };
     },
     
@@ -246,7 +278,7 @@ export default {
             });
         },
         openNewSubjectPopup() {
-            this.showNewSubjectDialog = true;
+            this.showDialog = true;
          },
         loadNextSubjectsListPage() {
             // Implement logic to load the next page of subjects
@@ -259,6 +291,16 @@ export default {
             }
             this.loaded_subjects.push(obj)
             this.subject = obj
+        },
+        isInputValid(){
+            if (this.checkboxRule(this.data_sharing_0) === true) {
+                console.log('All inputs are valid.');
+            } else {
+                console.log('Please check the checkbox.');
+            }
+        },
+        checkboxRule(value){
+            return value ? true : 'You must agree to continue';
         },
     }
 }
