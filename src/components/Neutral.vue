@@ -15,7 +15,7 @@
       Session Info
     </v-card-title>
     <v-card-text>
-      <v-row >
+      <v-row align="stretch">
        
         <v-col cols="11">
           <v-autocomplete
@@ -36,8 +36,10 @@
             <template v-slot:selection>{{ subject.name }}</template>
           </v-autocomplete>
         </v-col>
-        <v-col cols = "11">
-            <v-btn @click=openNewSubjectPopup>
+        <v-col cols = "1">
+            <v-btn
+            icon 
+            @click=openNewSubjectPopup>
                 <v-icon icon="mdi-plus" />
             </v-btn>   
         </v-col>
@@ -59,8 +61,34 @@
 
     </v-card-text>
   </v-card>
+<v-card class="mb-4">
+        <div class="d-flex justify-center">
+          <v-card-title class="justify-center data-title">
+            Data sharing agreement
+          </v-card-title>
+          <v-btn
+            icon
+          ><v-icon icon="mdi-help-circle-outline" />
+            
+
+            <v-tooltip
+                activator="parent"
+                location="bottom"
+            >The information on this page as well as videos of your movement are
+            uploaded to your own computer / where you host the local backend.
+            Remember to get informed consent and ask your patient about data sharing.</v-tooltip>
+    </v-btn>
+          <!--<v-tooltip bottom="">
+            <template v-slot:activator="{ on }">
+              <v-icon v-on="on"> mdi-help-circle-outline </v-icon>
+            </template>
+            
+          </v-tooltip>-->
+        </div>
+      </v-card>
 </div>
-  <v-card class="step-4-2 ml-4 d-flex images-box">
+
+<v-card class="step-4-2 ml-4 d-flex images-box">
 
 <v-card class="mb-0">
   <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
@@ -128,12 +156,14 @@ import { ref } from 'vue'
 import { mapState } from 'vuex'
 import MainLayout from '/src/layout/MainLayout.vue'
 import NewSubjectDialog from '@/components/ui/NewSubjectDialog.vue'
+import ExampleImage from './ui/ExampleImage.vue';
 
 export default {
     name: 'Neutral',
     components: {
         MainLayout,
-        NewSubjectDialog
+        NewSubjectDialog,
+        ExampleImage
     },
     created() {
         this.loadSubjectsList(false)
