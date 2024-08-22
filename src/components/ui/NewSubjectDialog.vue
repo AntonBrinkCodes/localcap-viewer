@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="edit_dialog" width="500" persistent @click:outside="closeDialog">
+    <v-dialog v-model="edit_dialog" width="500" @click:outside="closeDialog">
       <form @submit.prevent="submitSubjectForm" class="d-flex flex-column">
         <v-card>
           <v-card-title class="headline" v-if="edited_subject.id">Edit subject "{{ edited_subject.name }}"</v-card-title>
@@ -16,7 +16,7 @@
             <Field name="Weight" rules="required|weightRule" v-slot="{ field, meta }">
               <v-text-field
                 v-bind="field"
-                v-model="edited_subject.weight"
+                v-model="edited_subject.mass"
                 label="Weight (kg)"
                 type="number"
                 hide-spin-buttons
@@ -138,43 +138,58 @@
   
   <script>
   import { mapState, mapActions } from 'vuex';
-  import { useForm, Form, Field, ErrorMessage } from 'vee-validate';
+  import {defineRule, useForm, Form, Field, ErrorMessage } from 'vee-validate';
+  import { required } from '@vee-validate/rules';
+  defineRule('required', required);
   import { rules } from '@/validation';
   
   export default {
     name: 'NewSubjectDialog',
+    props: {
+      _closeDialog: {
+        type: Function,
+        required: true
+      },
+      onSave: {
+        type: Function,
+        required: true,
+      },
+      onCancel: {
+        type: Function,
+        required: false
+      }
+    },
     components: {
         Form,
         Field,
         ErrorMessage,
-        rules
+        rules,
     },
-    setup() {
+    setup() { 
       const form = useForm(); // Initialize the form validation
       const openDialog = () => {
-        this.edit_dialog = true;
         this.edited_subject = { ...this.empty_subject };
         this.formErrors = {
           name: null,
-          weight: null,
+          mass: null,
           height: null,
           birth_year: null,
           //subject_tags: null
         };
         console.log('add subject');
-      }
+      };
+      
       return { form, openDialog };
 
-      
     },
     data() {
       return {
-        rules,
         edit_dialog: false,
+        rules,
         edited_subject: {
           id: '',
           name: '',
-          weight: '',
+          mass: '',
           height: '',
           birth_year: '',
           sex_at_birth: '',
@@ -185,7 +200,7 @@
         empty_subject: {
           id: '',
           name: '',
-          weight: '',
+          mass: '',
           height: '',
           birth_year: '',
           sex_at_birth: '',
@@ -195,7 +210,7 @@
         },
         formErrors: {
           name: null,
-          weight: null,
+          mass: null,
           height: null,
           birth_year: null,
           //subject_tags: null
@@ -226,28 +241,34 @@
     methods: {
       ...mapActions('data', ['loadSubjects', 'loadSubjectTags']),
       closeDialog() {
-        if (
-          this.$refs.subjectTagsSelect.isMenuActive ||
+        // add checks later
+        this.edit_dialog=false
+        this._closeDialog(this.edit_dialog)
+        /*if (
+          //this.$refs.subjectTagsSelect.isMenuActive ||
           this.$refs.sexAtBirthSelect.isMenuActive ||
           this.$refs.genderSelect.isMenuActive
         )
           this.edit_dialog = true;
-        else this.edit_dialog = false;
+        else this.edit_dialog = false;*/
       },
-      async cancelSubjectForm() {
+      cancelSubjectForm() {
         this.edit_dialog = false;
+        console.log(`edit dialog is - ${this.edit_dialog}`)
         this.edited_subject = { ...this.empty_subject };
         this.formErrors = {
           name: null,
-          weight: null,
+          mass: null,
           height: null,
           birth_year: null,
           subject_tags: null
         };
+        this._closeDialog(this.edit_dialog)
       },
-      async submitSubjectForm() {
+      submitSubjectForm() {
+        this.onSave(this.edited_subject)
         this.edit_dialog = false;
-  
+        
         /*if (!this.edited_subject.subject_tags || this.edited_subject.subject_tags.length === 0) {
           this.edit_dialog = true;
           this.formErrors.subject_tags = [
@@ -258,7 +279,7 @@
   
         this.formErrors = {
           name: null,
-          weight: null,
+          mass: null,
           height: null,
           birth_year: null,
           //subject_tags: null
@@ -293,8 +314,8 @@
             }
           }
         }*/
+        this._closeDialog(this.edit_dialog)
   
-        console.log('edit_dialog=', this.edit_dialog);
         // await this.loadSubjects();
       },
       clearEditedSubject() {
@@ -305,7 +326,7 @@
         this.edited_subject = { ...this.empty_subject };
         this.formErrors = {
           name: null,
-          weight: null,
+          mass: null,
           height: null,
           birth_year: null,
           //subject_tags: null

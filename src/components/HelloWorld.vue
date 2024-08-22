@@ -4,7 +4,7 @@
     leftButton="Back"
     rightButton="Calibrate"
     :step="2"
-    :rightDisabled="this.cameras>=2"
+    :rightDisabled="this.mobilesCount>=2"
     :leftDisabled="true"
     @left="this.$router.push(`/`)"
     @right="startSession">

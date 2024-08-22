@@ -31,13 +31,14 @@
       
       
     </v-card>
-  </MainLayout>
      <!-- Button at the Bottom -->
      <div v-if="mobilesCount >= 0" class="button-container d-flex justify-center mb-4">
         <v-btn @click="startCalibration" >
           Begin Calibration
         </v-btn>
       </div>
+  </MainLayout>
+    
   </template>
   
   <script>
@@ -96,6 +97,15 @@
   flex-grow: 1;
   h1 {
     line-height: 1.15;
+  }
+}
+.step-1 {
+  width:100%;
+
+  .qr-container {
+    width: 200px;
+    height: 200px;
+    overflow: hidden;
   }
 }
 

@@ -109,7 +109,7 @@
   
   <style lang="scss" scoped>
   .main-layout {
-    min-height: calc(100vh - 64px);
+    min-height: calc(100vh - 64px); 
   
     &.fixed-height {
       height: calc(100vh - 64px);
@@ -122,7 +122,7 @@
   
     .navigation {
       .slot {
-        width: 150px;
+        width: 0px;
       }
     }
   }

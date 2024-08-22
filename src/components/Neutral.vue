@@ -38,7 +38,7 @@
         <v-col cols = "1">
             <v-btn
             icon 
-            @click=openNewSubjectPopup>
+            @click=openNewSubjectPopup(true)>
                 <v-icon icon="mdi-plus" />
             </v-btn>   
         </v-col>
@@ -167,7 +167,8 @@
   <!-- Include the Dialog component -->
   <NewSubjectDialog
       v-model="showDialog"
-      @subject-added="submitAddSubject"
+      :_closeDialog="openNewSubjectPopup"
+      :onSave="submitAddSubject"
       @subject-updated="handleSubjectUpdated"
     />
     
@@ -181,11 +182,13 @@
 
 
 <script>
-import { ref } from 'vue'
+import { ref, watch } from 'vue'
 import { mapState } from 'vuex'
 import MainLayout from '/src/layout/MainLayout.vue'
 import NewSubjectDialog from './ui/NewSubjectDialog.vue'
 import ExampleImage from './ui/ExampleImage.vue';
+import { v4 as uuidv4 } from "uuid";
+
 
 export default {
     name: 'Neutral',
@@ -217,8 +220,11 @@ export default {
             data_sharing_0: false,
             labelText: 'The subject acknowledges that the recorded videos and processed data will be stored in the manner you have chosen locally. The subject has been fully informed of the storage method and has provided consent for the use of their recordings in accordance with the agreed-upon purposes.',
         };
+    },watch:{
+      showDialog(newValue){
+        console.log(newValue)
+      }
     },
-    
     computed: {
         ...mapState({
             sessionID: state => state.sessionID,
@@ -277,21 +283,40 @@ export default {
                 message: JSON.stringify(subjectsMsg)
             });
         },
-        openNewSubjectPopup() {
-            this.showDialog = true;
+        openNewSubjectPopup(value) {
+            this.showDialog = value;
          },
         loadNextSubjectsListPage() {
             // Implement logic to load the next page of subjects
         },
+        handleSubjectUpdated(){
+          // Implement this
+        },
+        saveSubjectToServer(subject){
+          const savesubjMsg = {
+            command: 'save_subject',
+            content: subject
+          }
+          this.$store.dispatch('sendMessage', {
+            message: JSON.stringify(savesubjMsg)
+          });
+        },
         submitAddSubject (data) {
             console.log('submitAddSubject', data)
             let obj = {
-                id: data.id,
-                display_name: `${data.name} (${data.mass} Kg, ${data.height} m, ${data.birth_year})`,
+                id: uuidv4(),
+                name: data.name,
+                mass: data.mass,
+                height: data.height,
+                gender: data.gender,
+                birth_year: data.birth_year,
+
             }
             this.loaded_subjects.push(obj)
             this.subject = obj
-        },
+            
+            this.saveSubjectToServer(this.subject)
+        }, 
         isInputValid(){
             if (this.checkboxRule(this.data_sharing_0) === true) {
                 console.log('All inputs are valid.');

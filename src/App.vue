@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app :style="{background: $vuetify.theme.themes.dark.background}">
   <v-main>
     <router-view></router-view>
   </v-main>
@@ -66,4 +66,5 @@
     user-select: none;
     margin-top: 10px;
   }
+
   </style>
