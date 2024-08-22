@@ -59,6 +59,8 @@ export default {
             "non-binary": "Non-Binary/Non-Conforming",
             "prefer-not-respond": "Prefer not to respond",
           },
+        
+        test_session: false,
 
 
     },
@@ -82,6 +84,9 @@ export default {
         },
         SET_CALIBRATED(state, calibrated){
             state.calibrated = calibrated
-        }
+        },
+        SET_TEST_SESSION(state, value){
+            state.test_session = value
+        },
     }
 }
