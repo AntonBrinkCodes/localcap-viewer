@@ -1,10 +1,12 @@
 // src/store.js
 import { createStore } from 'vuex';
 import data from '@/store/data'
+
+// Replace baseURL with where fastAPI backend is hosted. Perhaps should not be state but in env thing
 //192.168.0.48 home
-//const baseURL = "130.229.141.43:" 
-const baseURL = "192.168.50.9:" // Landet: Remove :)
-//const baseURL = "192.168.0.48:" //(MAC IN EDUROAM?) // "130.229.141.43:" (LINUX) // Replace with where fastAPI backend is hosted. Perhaps should not be state but in env thing
+const baseURL = "130.229.141.43:" // LINUX
+//const baseURL = "192.168.50.9:" // Landet: Remove :)
+//const baseURL = "192.168.0.48:" //(MAC IN EDUROAM?) 
 const port = "8080"
 
 export default createStore({
