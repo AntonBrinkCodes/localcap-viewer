@@ -70,7 +70,6 @@
           <v-btn
             icon
           ><v-icon icon="mdi-help-circle-outline" />
-
             <v-tooltip
                 activator="parent"
                 location="bottom"
@@ -78,6 +77,7 @@
             uploaded to your own computer / where you host the local backend.
             Remember to get informed consent and ask your patient about data sharing.</v-tooltip>
             </v-btn>
+
         </div>
         <v-card-text class="d-flex flex-column align-left checkbox-wrapper">
                 <div class="d-flex flex-column checkbox-box">
@@ -160,6 +160,24 @@
       If the subject cannot adopt the example neutral pose, select "Any pose" scaling setup under Advanced Settings
     </v-card-title>
 
+    <div class="d-flex justify-center">
+        <div class="text-center">
+          <v-btn
+            color="primary-dark"
+            class="mt-4 mb-4 ml-4 mr-4"
+            x-large
+            @click="this.$router.push(`/${this.sessionID}/dynamic`)"
+          >
+            Go to Dynamic
+            <v-tooltip
+                activator="parent"
+                location="bottom">
+            Dynamic part is WIP
+                </v-tooltip>
+          </v-btn>
+        </div>
+    </div>
+
 </v-card>
 
 
@@ -183,7 +201,7 @@
 
 <script>
 import { ref, watch } from 'vue'
-import { mapState } from 'vuex'
+import { mapState, mapActions} from 'vuex'
 import MainLayout from '/src/layout/MainLayout.vue'
 import NewSubjectDialog from './ui/NewSubjectDialog.vue'
 import ExampleImage from './ui/ExampleImage.vue';
@@ -199,6 +217,13 @@ export default {
     },
     created() {
         this.loadSubjectsList(false)
+        const pingmsg = {
+          command: "ping"
+        }
+        this.sendMessage({
+          message: JSON.stringify(pingmsg),
+          session_id: this.sessionID
+        })
     },
     data() {
         return {
@@ -232,6 +257,7 @@ export default {
         }),
         ...mapState('data', {
             subjects: state => state.subjects,
+            isTest: state => state.test_session,
         }),
         subject_search: {
             get() {
@@ -259,9 +285,23 @@ export default {
         }
     },
     methods: {
+        ...mapActions(['sendMessage']),
         onNext() {
             console.log('onNext pressed');
-            this.loadSubjectsList(false);
+            //this.loadSubjectsList(false);
+            console.log('is this a test run? :', this.isTest)
+            console.log(this.sessionID)
+            const startNeutralMsg = {
+                command:"start_neutral",
+                subject: this.subject,
+                isTest: this.isTest,
+            }
+            this.sendMessage({
+            message: JSON.stringify(startNeutralMsg),
+            session_id: this.sessionID
+        }) ;
+              
+            
         },
         async loadSubjectsList(append_result = false) {
             console.log('loading subjects:', this.subject_search, ' - ', append_result);
@@ -277,7 +317,7 @@ export default {
             // Something to search in data stores list of Subjects :/
             // For now, this sends a message to get the subjects from server and puts that into this.
             const subjectsMsg = {
-                command: 'get_subjects'
+                command: 'get_subjects',
             };
             this.$store.dispatch('sendMessage', {
                 message: JSON.stringify(subjectsMsg)

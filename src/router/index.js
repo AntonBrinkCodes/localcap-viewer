@@ -5,6 +5,8 @@ import App from '@/App.vue'
 import Calibration from '../components/Calibration.vue';
 import NewSession from '../components/NewSession.vue';
 import Neutral from '../components/Neutral.vue'
+import Dynamic from '../components/Dynamic.vue'
+
 const routes = [
   {
     path: '/',
@@ -35,6 +37,11 @@ const routes = [
     path: '/:id/neutral',
     name: 'Neutral',
     component: Neutral
+  },
+  {
+    path: '/:id/dynamic',
+    name: 'Dynamic',
+    component: Dynamic
   },
   
 ];

@@ -147,6 +147,9 @@ export default createStore({
                 const success = jsonMessage.content.match("success")
                 commit('data/SET_CALIBRATED', success )
               }
+              else if (jsonMessage.command=="pong"){
+                console.log("Got PONG back from session websocket")
+              }
         }
 
       
