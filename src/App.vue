@@ -31,6 +31,7 @@
   
   <script>
   import { mapState } from 'vuex';
+import { mapActions } from 'vuex/dist/vuex.cjs.js';
 
   export default {
     name: 'App',
@@ -50,6 +51,7 @@
       },
     },
     methods: {
+      ...mapActions(['sendMessage']),
       showToast(message) {
         this.snackbarMessage = message.length > 50 ? message.substring(0, 47) + '...' : message; // Truncate long messages
         this.showSnackbar = true;
@@ -57,6 +59,7 @@
     },
     created() {
       this.$store.dispatch('connectWebSocket');
+      console.log(this.$store.state.baseURL)
     }
   };
   

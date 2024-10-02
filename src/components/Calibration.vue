@@ -25,7 +25,7 @@
 
         <v-col cols="6" class="pl-4">
           <div class="image-container text-center">
-            <img src="/src/assets/images/checkerboard-placement.png" class="img-fluid" alt="Checkerboard Placement" style="max-width: 50%; height: auto;" />
+            <img src="../assets/images/big_good_triangle.jpg" class="img-fluid" alt="Checkerboard Placement" style="max-width: 50%; height: auto;" />
           </div>
         </v-col>
       </v-row>

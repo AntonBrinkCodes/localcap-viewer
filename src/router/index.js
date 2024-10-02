@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router';
 import HomePage from './../components/HelloWorld.vue';
-import Vizualizer from '@/Vizualiser.vue'
+import Visualizer from '../Visualizer.vue'
 import App from '@/App.vue'
 import Calibration from '../components/Calibration.vue';
 import NewSession from '../components/NewSession.vue';
@@ -14,9 +14,13 @@ const routes = [
     component: HomePage
   },
   {
-    path: '/vizualiser',
-    name: 'Vizualizer',
-    component: Vizualizer,
+    path: '/visualizer',
+    name: 'Visualizer',
+    component: Visualizer,
+    beforeEnter: (to, from, next) => {
+      console.log('Entering Vizualizer route');
+      next();
+    },
   },
   {
     path: '/placeholder',

@@ -23,6 +23,7 @@ export default createStore({
     sessionID: '',
     toastMessage: '',
     toastType: 'info',
+    sessionList: null,
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
@@ -66,6 +67,10 @@ export default createStore({
       state.toastType = type.toLowerCase()
       console.log(state.toastType)
     },
+    SET_SESSION_LIST(state, values){
+      console.log("Received new session list", values)
+      state.sessionList = values
+    }
   },
   actions: {
     connectWebSocket({ state, commit, dispatch }) {
@@ -96,6 +101,8 @@ export default createStore({
           const jsonMessage = JSON.parse(message)
           if (jsonMessage.command=="subjects") {
             commit('data/SET_SUBJECTS', jsonMessage.content)
+          } else if (jsonMessage.command = "sessions"){
+            commit('SET_SESSION_LIST', jsonMessage.content)
           }
         }
       };
@@ -150,6 +157,11 @@ export default createStore({
               else if (jsonMessage.command=="pong"){
                 console.log("Got PONG back from session websocket")
               }
+              else if (jsonMessage.command == "visualizerJSON"){
+                console.log("Got new visualizer JSON")
+                const visualizerJson = jsonMessage.content
+                commit('data/SET_VISUALIZER_JSON', visualizerJson)
+              }
         }
 
       
@@ -174,6 +186,7 @@ export default createStore({
         // Send to general server.
         } else {
           if (state.webSocket && state.connectionStatus === 'Connected') {
+          console.log("sending to general ws")
           state.webSocket.send(data);
           }
         }

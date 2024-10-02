@@ -29,6 +29,9 @@ const objLoader = new OBJLoader();
 
 export default {
   name: 'Vizualiser',
+  props: {
+    animationJson: Object, // Receive the JSON data as a prop
+  },
   data() {
     return {
       /**meshes: {},
@@ -51,7 +54,22 @@ export default {
       timeEnd: 0,*/
     };
   },
+  watch: {
+    // Watch for changes in animationJson prop and initialize when it's available
+    animationJson: {
+      handler(newValue) {
+        if (newValue) {
+          this.initializeInstance();
+          this.loadAnimationData();
+          this.setup3d();
+          this.addEnvironment();
+        }
+      },
+      immediate: true,
+    },
+  },
   mounted() {
+    console.log("Mount Visualizer...")
     this.initializeInstance();
     this.loadAnimationData();
     this.$nextTick(() =>{
@@ -73,8 +91,8 @@ export default {
       //fetch('./assets/dynamic_2.json')
       //.then(response => response.json())
       //then(data => {
-        this.animation_json = animationData;
-        this.frames = animationData.time;
+        this.animation_json = this.animationJson;
+        this.frames = this.animationJson.time;
         this.trialLoading = false;
       //});
       console.log("loaded data?", this.animation_json);

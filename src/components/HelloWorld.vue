@@ -26,7 +26,8 @@
           <!-- Start new Session button-->
       <v-btn @click="startSession">
         New Session
-      </v-btn>  
+      </v-btn>
+      <v-btn @click="this.$router.push('/visualizer')"> Visualizer</v-btn> <!-- Test-->
         </v-row>
       </v-card-text>
     </v-card>
@@ -40,6 +41,7 @@ import { ref } from 'vue'
 import QRCodeVue3 from "qrcode-vue3";
 import {mapState, mapActions} from 'vuex';
 import MainLayout from '../layout/MainLayout.vue';
+
 export default {
   name: 'Home',
   components: {
@@ -53,13 +55,34 @@ export default {
       recievedMessage: 'receivedMessage',
       BASEURL: state =>  state.BASEURL,
       sessionID: state => state.sessionID,
+      sessionList: state => state.sessionList,
     }),
+  },
+  
+  watch: {
+    sessionList(newSessionList){
+      this.sessionList = newSessionList;
+      console.log(this.sessionList)
+    },
+    connectionStatus(newStatus){
+      if(newStatus){
+        this.askForSession()
+      }
+      
+
+    }
   },
   methods: {
     ...mapActions(['sendMessage', 'getBASEURL']),
-    sendMessage() {
-      this.$store.dispatch('sendMessage', this.inputMessage);
-      this.inputMessage = '';
+    askForSession(){
+      console.log("asking For Sessions?")
+      const askForSessionmsg = {
+        command:"get_sessions"
+      }
+      this.sendMessage({
+        message: JSON.stringify(askForSessionmsg),
+        
+      })
     },
     startRecording(){
       this.$store.dispatch('sendMessage', 'start')
@@ -93,23 +116,13 @@ export default {
     
   },
   created() {
-    //this.$store.dispatch('connectWebSocket');
-
+    // Get the sessions
+    console.log("Hello world created")
   },
-  setup() {
-    const count = ref(0);
-    const msg = ref("");
-    //const BASEURL = store.state;
-    
-    const inputMessage = ref('');
-
-    return {
-      count,
-      msg,
-      URL,
-      inputMessage, // Bind the input to the message
-    };
+  mounted() {
+    console.log("hello world mounted")
   }
+
 };
 </script>
 

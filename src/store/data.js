@@ -62,6 +62,8 @@ export default {
         
         test_session: false,
 
+        visualizerJSON: null
+
 
     },
     mutations: {
@@ -88,5 +90,8 @@ export default {
         SET_TEST_SESSION(state, value){
             state.test_session = value
         },
+        SET_VISUALIZER_JSON(state, value){
+            state.visualizerJSON = value
+        }
     }
 }
