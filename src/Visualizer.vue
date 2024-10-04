@@ -245,7 +245,6 @@ export default {
         },
         animateOneFrame() {
             let cframe
-            console.log("Animating frame")
 
             let frames = this.frames.length
             let duration = 0
@@ -314,7 +313,6 @@ export default {
     cframe = this.frame;
     if (cframe < this.frames.length) {
         // Display the frame
-        console.log("displaying frame ;)", cframe)
         let json = this.animation_json;
         for (let body in json.bodies) {
             json.bodies[body].attachedGeometries.forEach((geom) => {
@@ -415,17 +413,50 @@ togglePlay(value) {
 };
 </script>
 
-<style scoped>
+<style lang="scss">
+
 .video-player {
-  display: flex;
-  height: 100vh;
-}
-.viewer {
-  flex-grow: 1;
-  display: flex;
-  flex-direction: column;
-}
-#mocap {
-  flex-grow: 1;
+    height: calc(100% - 64px);
+
+    .left {
+        width: 250px;
+
+        .trials {
+            overflow-y: auto;
+
+            .trial {
+                border-radius: 4px;
+                padding: 2px 6px;
+
+                &.selected {
+                    background-color: #272727;
+                    cursor: default;
+                }
+            }
+        }
+    }
+
+    .viewer {
+        height: 100%;
+
+        #mocap {
+            width: 100%;
+            overflow: hidden;
+
+            canvas {
+                width: 100% !important;
+            }
+        }
+    }
+
+    .right {
+        flex: 0 0 200px;
+        height: 100%;
+
+        .videos {
+            overflow-y: auto;
+            width: 200px;
+        }
+    }
 }
 </style>

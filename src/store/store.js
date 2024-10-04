@@ -23,7 +23,7 @@ export default createStore({
     sessionID: '',
     toastMessage: '',
     toastType: 'info',
-    sessionList: null,
+    sessionList: {},
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
@@ -58,6 +58,9 @@ export default createStore({
     async SET_SESSIONID(state, message){
       state.sessionID = message;
       console.log(`session ID in state is: ${state.sessionID}`)
+    },
+    SET_SESSION_ID_SYNCED(state, message){
+      state.sessionID=message
     },
     SET_TOASTMESSAGE(state, message){
       console.log("changing toastMessage")
@@ -120,6 +123,7 @@ export default createStore({
       commit('SET_WEBSOCKET', ws);
     },
     connectSessionWebSocket({ state, commit, dispatch }){
+      console.log('connecting to session WS: ', state.sessionID)
       const sessionWS = new WebSocket(`ws://${state.BASEURL}/ws/${state.sessionID}/session?client_type=web`);
 
       sessionWS.onopen = () =>{
@@ -205,6 +209,7 @@ export default createStore({
     },
     disconnectSessionWebSocket({ state, commit }){
       if(state.sessionWebSocket){
+        console.log("Closing session websocket.")
         state.sessionWebSocket.close()
       }
         commit('SET_SESSIONID', null)

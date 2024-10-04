@@ -20,10 +20,16 @@
         </v-btn>
 
         <v-card-text>
-        <v-btn @click="this.getVisualizerJson" >
-            Load visualizer Json
-        </v-btn>
-    </v-card-text>
+            <v-btn @click="this.getVisualizerJson" >
+                Load visualizer Json
+            </v-btn>
+        </v-card-text>
+
+        <v-card-text>
+            <v-btn @click="this.stopVisualizer" >
+                Stop Visualizer
+            </v-btn>
+        </v-card-text>
     </v-card>
 
     <v-card-text>
@@ -70,6 +76,9 @@ export default{
                 message: JSON.stringify(startDynamicMsg),
                 session_id: this.sessionID
             })
+        },
+        stopVisualizer(){
+            this.visualizerJson = null
         },
         getVisualizerJson() {
             this.visualizerJson = animationData
