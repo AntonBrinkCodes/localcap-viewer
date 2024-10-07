@@ -24,6 +24,7 @@ export default createStore({
     toastMessage: '',
     toastType: 'info',
     sessionList: {},
+    trialList: {},
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
@@ -73,7 +74,11 @@ export default createStore({
     SET_SESSION_LIST(state, values){
       console.log("Received new session list", values)
       state.sessionList = values
-    }
+    },
+    SET_TRIAL_LIST(state, values){
+      console.log("Received new trials list", values)
+      state.trialList = values
+    },
   },
   actions: {
     connectWebSocket({ state, commit, dispatch }) {
@@ -165,6 +170,9 @@ export default createStore({
                 console.log("Got new visualizer JSON")
                 const visualizerJson = jsonMessage.content
                 commit('data/SET_VISUALIZER_JSON', visualizerJson)
+              }
+              else if (jsonMessage.command == "sessionTrials"){
+                commit('SET_TRIAL_LIST', jsonMessage.content)
               }
         }
 

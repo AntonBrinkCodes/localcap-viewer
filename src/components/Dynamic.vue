@@ -19,6 +19,7 @@
             Back to home
         </v-btn>
 
+
         <v-card-text>
             <v-btn @click="this.getVisualizerJson" >
                 Load visualizer Json
@@ -30,6 +31,10 @@
                 Stop Visualizer
             </v-btn>
         </v-card-text>
+
+        <v-btn @click="this.getTrials">
+            ask for trials
+        </v-btn>
     </v-card>
 
     <v-card-text>
@@ -58,10 +63,16 @@ export default{
         ...mapState({
             sessionID: state => state.sessionID,
             cameras: state => state.mobilesCount,
+            trials: state => state.trials,
         }),
         ...mapState('data',{
             isTest: state => state.test_session,
         }),
+    },
+    watch: {
+        trials(newTrials) {
+            console.log(newTrials)
+        }
     },
     methods: {
         ...mapActions(['sendMessage', 'getBASEURL']),
@@ -77,8 +88,18 @@ export default{
                 session_id: this.sessionID
             })
         },
+        getTrials(){
+            const getTrialsMsg = {
+                command: "get_session_trials",               
+            }
+            this.sendMessage({
+                message: JSON.stringify(getTrialsMsg),
+                session_id: this.sessionID
+            })
+        },
         stopVisualizer(){
             this.visualizerJson = null
+        
         },
         getVisualizerJson() {
             this.visualizerJson = animationData
@@ -92,6 +113,9 @@ export default{
             });*/
         },
     },
+    created() {
+        this.getTrials()
+    }
 
     
 }

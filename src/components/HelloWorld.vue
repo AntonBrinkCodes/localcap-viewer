@@ -142,30 +142,30 @@ export default {
   methods: {
     ...mapActions(['sendMessage', 'getBASEURL', 'connectSessionWebSocket']),
     // Reusable function for checking the session ID
-  checkSessionCondition({ storeAction = null, routePath = null, intervalTime = 100, condition = () => this.sessionID }) {
-    const interval = setInterval(() => {
-      console.log("Checking condition for session...");
+    checkSessionCondition({ storeAction = null, routePath = null, intervalTime = 100, condition = () => this.sessionID }) {
+      const interval = setInterval(() => {
+        console.log("Checking condition for session...");
 
-      // Check if the condition is met (default condition is this.sessionID is set)
-      if (condition()) {
-        console.log("Condition met, sessionID is: ", this.sessionID)
-        console.log(routePath)
-        clearInterval(interval); // Stop checking
+        // Check if the condition is met (default condition is this.sessionID is set)
+        if (condition()) {
+          console.log("Condition met, sessionID is: ", this.sessionID)
+          console.log(routePath)
+          clearInterval(interval); // Stop checking
 
-        // Dispatch the store action if provided
-        if (storeAction) {
-          this.$store.dispatch(storeAction);
+          // Dispatch the store action if provided
+          if (storeAction) {
+            this.$store.dispatch(storeAction);
+          }
+
+          // Navigate to the given route if provided
+          if (routePath) {
+            const path = `/${this.sessionID}`+routePath
+            console.log(path)
+            this.$router.push(path);
+          }
         }
-
-        // Navigate to the given route if provided
-        if (routePath) {
-          const path = `/${this.sessionID}`+routePath
-          console.log(path)
-          this.$router.push(path);
-        }
-      }
-    }, intervalTime);
-  },
+      }, intervalTime);
+    },
     askForSession(){
       console.log("asking For Sessions?")
       const askForSessionmsg = {
