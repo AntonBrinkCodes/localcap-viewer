@@ -46,6 +46,7 @@
   import QRCodeVue3 from 'qrcode-vue3';
   import { mapState, mapActions } from 'vuex';
   import MainLayout from '../layout/MainLayout.vue';
+import { mapMutations } from 'vuex/dist/vuex.cjs.js';
   
   export default {
     name: 'NewSession',
@@ -62,6 +63,9 @@
         BASEURL: (state) => state.BASEURL,
         sessionID: (state) => state.sessionID,
       }),
+      ...mapState('data', {
+      calibrated: state => state.calibrated,
+    }),
       qrURL() {
         console.log(`ws://${this.BASEURL}/ws/${this.sessionID}/session`)
         return `ws://${this.BASEURL}/ws/${this.sessionID}/session`;
@@ -70,6 +74,7 @@
     methods: {
       ...mapActions(['sendMessage', 'getBASEURL']),
       async startCalibration() {
+        this.SET_CALIBRATED(false)
         const checkSessionID = setInterval(() => {
           if (this.sessionID) {
             clearInterval(checkSessionID);
@@ -77,6 +82,7 @@
           }
         }, 100);
       },
+      ...mapMutations('data', ['SET_CALIBRATED']), // Acess mutations
     },
     
   };

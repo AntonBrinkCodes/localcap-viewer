@@ -49,8 +49,29 @@
       @click:row="onRowClick"
     >
       <!-- Add other slots if needed for custom item rendering -->
+       <!-- Slot for remove item.-->
+      <template v-slot:[`item.action`]="{ item }">
+    <!-- Add the button here -->
+    <v-btn icon="mdi-delete" @click.stop="showDeleteDialog(item.sessionID)"> <!-- click.stop supposedly stops the row onclick from also triggering-->
+    </v-btn>
+  </template>
     </v-data-table>
   </div>
+
+  <!-- Confirmation Dialog for Deleting -->
+  <v-dialog v-model="deleteDialog" max-width="500px">
+      <v-card>
+        <v-card-title class="headline">Are you sure you want to delete this session?</v-card-title>
+        <v-card-actions>
+          <v-btn color="green darken-1" text @click="cancelDelete">
+            Cancel
+          </v-btn>
+          <v-btn color="red darken-1" text @click="confirmDelete">
+            Delete
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 </MainLayout>
 
 </template>
@@ -69,6 +90,8 @@ export default {
   data() {
     return {
       search: '',
+      deleteDialog: false,
+      sessionToDelete: "",
     }
   },
   computed: {
@@ -88,6 +111,7 @@ export default {
         { title: 'Height (m)', key: 'height', align:'end'},
         { title: 'Mass (kg)', key: 'mass' , align:'end'},
         { title: 'Session Date', key: 'sessionDate', align:'end' },
+        { title: 'Delete', key: 'action', align: 'center' }, // Delete Button
       ];
     },
     filteredSessions() {
@@ -189,7 +213,32 @@ export default {
         routePath: `/dynamic`, // Navigate to the session path when ready
         intervalTime: 100, // Check every 100 milliseconds
         condition: () => this.sessionID, // Custom condition: wait until sessionID is set
-    });
+    }); 
+    },
+    showDeleteDialog(item){
+      console.log("Button clicked for session:", item);
+      this.sessionToDelete = item;
+      this.deleteDialog = true
+    },
+    cancelDelete(){
+      // Close the dialog
+      this.sessionToDelete = ""
+      this.deleteDialog = false
+    },
+    confirmDelete(){
+      this.deleteSession(this.sessionToDelete)
+      this.deleteDialog = false
+      this.askForSession()
+    },
+    deleteSession(sessionID){
+      const deletemsg = {
+      command: "delete_session",
+      content: this.sessionToDelete,
+    }
+    console.log(deletemsg)
+      this.sendMessage({
+      message: JSON.stringify(deletemsg),
+      })
     },
     startRecording(){
       this.$store.dispatch('sendMessage', 'start')
