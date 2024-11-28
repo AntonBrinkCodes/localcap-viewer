@@ -42,6 +42,15 @@
       <Visualizer v-if="this.visualizerJson" :animation-json="visualizerJson" />
     </v-card-text>
 
+    <div>
+    <h1>Session Trials</h1>
+    <ul>
+      <li v-for="trial in session.trials" :key="trial.uuid">
+        {{ trial.trialName }} - Processed: {{ trial.processed }}
+      </li>
+    </ul>
+  </div>
+
 </template>
 
 <script>
@@ -55,18 +64,18 @@ export default{
     },
     data () {
         return {
-            trialName: "",
+            trialName: "", // To enter new trialName
             visualizerJson: null,
         }
     },
     computed: {
         ...mapState({
             sessionID: state => state.sessionID,
-            cameras: state => state.mobilesCount,
-            trials: state => state.trials,
+            cameras: state => state.sessionCameras,
         }),
         ...mapState('data',{
             isTest: state => state.test_session,
+            session: state => state.session
         }),
     },
     watch: {
@@ -104,6 +113,7 @@ export default{
         getVisualizerJson() {
             this.visualizerJson = animationData
             console.log(this.visualizerJson)
+
             /*import('../assets/dynamic_2.json') // replace with call to server.
             .then((data) => {
                 console.log(data)

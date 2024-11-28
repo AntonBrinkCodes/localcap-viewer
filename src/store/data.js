@@ -1,6 +1,4 @@
 
-
-
 export default {
     namespaced: true,
     state: {
@@ -15,9 +13,9 @@ export default {
         calibrated: false,
 
         trial : {
-            id: '',
+            uuid: '',
             trialName: '',
-            isProcessing: true
+            processed: false
         },
         // For neutral session recording:
         // step 4
@@ -66,6 +64,10 @@ export default {
 
 
     },
+    actions: {
+        // Put /data/store actions here        
+
+    },
     mutations: {
         setNeutral (state, { subject, data_sharing, scaling_setup, pose_model, openSimModel, augmenter_model, filter_frequency }) {
             // state.identifier = identifier
@@ -92,6 +94,16 @@ export default {
         },
         SET_VISUALIZER_JSON(state, value){
             state.visualizerJSON = value
+        },
+        SET_SESSION_TRIALS(state, trials) {
+        // Transform the received JSON into the desired format
+        const trials = Object.entries(trialDict).map(([key, value]) => ({
+            uuid: value.uuid || '',
+            trialName: value.trialName || key,
+            processed: value.processed || false,
+          }));
+          // commit it to state
+            state.session.trials = trials
         }
     }
 }
