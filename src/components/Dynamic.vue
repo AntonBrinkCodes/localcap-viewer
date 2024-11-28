@@ -39,16 +39,14 @@
 
     <v-card-text>
       <!-- Include the Visualizer component and pass the visualizerJson and other necessary data as props -->
-      <Visualizer v-if="this.visualizerJson" :animation-json="visualizerJson" />
+      <Visualizer v-if="visualizerJson" :animation-json="visualizerJson" />
     </v-card-text>
 
     <div>
-    <h1>Session Trials</h1>
-    <ul>
-      <li v-for="trial in session.trials" :key="trial.uuid">
-        {{ trial.trialName }} - Processed: {{ trial.processed }}
-      </li>
-    </ul>
+    <TrialList 
+      :trials="session.trials" 
+      @trial-click="getVisualizerJson"
+    />
   </div>
 
 </template>
@@ -56,16 +54,18 @@
 <script>
 import {mapState, mapActions} from 'vuex'
 import Visualizer from '../Visualizer.vue';
+import TrialList from '../components/ui/TrialList.vue';
+
 import animationData from '../assets/dynamic_2.json'
 export default{
     name: 'Dynamic',
     components: {
         Visualizer,
+        TrialList,
     },
     data () {
         return {
             trialName: "", // To enter new trialName
-            visualizerJson: null,
         }
     },
     computed: {
@@ -75,11 +75,12 @@ export default{
         }),
         ...mapState('data',{
             isTest: state => state.test_session,
-            session: state => state.session
+            session: state => state.session,
+            visualizerJson: state => state.visualizerJSON
         }),
     },
     watch: {
-        trials(newTrials) {
+        session(newTrials) {
             console.log(newTrials)
         }
     },
@@ -89,7 +90,8 @@ export default{
             const startDynamicMsg = {
                 command: "start_dynamic",
                 trialName: this.trialName,
-                isTest: this.isTest
+                isTest: this.isTest,
+                session: this.sessionID
             }
             console.log('message is: ', startDynamicMsg)
             this.sendMessage({
@@ -99,7 +101,9 @@ export default{
         },
         getTrials(){
             const getTrialsMsg = {
-                command: "get_session_trials",               
+                command: "get_session_trials", 
+                isTest: this.isTest,
+                session: this.sessionID              
             }
             this.sendMessage({
                 message: JSON.stringify(getTrialsMsg),
@@ -107,12 +111,24 @@ export default{
             })
         },
         stopVisualizer(){
-            this.visualizerJson = null
-        
+            this.visualizerJSON = null
+            this.$store.commit('data/SET_VISUALIZER_JSON', null)
         },
-        getVisualizerJson() {
-            this.visualizerJson = animationData
-            console.log(this.visualizerJson)
+        getVisualizerJson(trial) {
+            const visualizerJsonMsg = {
+                command: "get_visualizer",
+                trialName: trial.trialName,
+                session: this.sessionID
+            }
+            console.log(visualizerJsonMsg)
+            if(trial.processed == true) {
+                this.sendMessage({message: JSON.stringify(visualizerJsonMsg),
+                session_id: this.sessionID
+            })
+            }
+            
+            //this.visualizerJson = animationData
+            //console.log(this.visualizerJson)
 
             /*import('../assets/dynamic_2.json') // replace with call to server.
             .then((data) => {
@@ -123,8 +139,15 @@ export default{
             });*/
         },
     },
-    created() {
-        this.getTrials()
+    onMounted() {
+        console.log('the visualizerJSON is: ', visualizerJson)
+        //this.getTrials()
+    },
+    unmounted() {
+        console.log("Unmounting Dynamic.")
+        const emptyDict = {}
+        this.$store.commit('data/SET_SESSION_TRIALS', emptyDict)
+        this.$store.commit('data/SET_VISUALIZER_JSON', null)
     }
 
     

@@ -34,7 +34,7 @@ export default {
 
         // For dynamic recordings:
         trialName: '',
-
+        visualiserJSON: null,
 
         // For subjects
         subjects: [],
@@ -96,6 +96,7 @@ export default {
             state.visualizerJSON = value
         },
         SET_SESSION_TRIALS(state, trialDict) {
+        console.log("SETTING NEW SESSIONS: ", trialDict)
         // Transform the received JSON into the desired format
         const trials = Object.entries(trialDict).map(([key, value]) => ({
             uuid: value.uuid || '',

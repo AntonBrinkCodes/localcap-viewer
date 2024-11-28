@@ -172,7 +172,8 @@ export default createStore({
                 commit('data/SET_VISUALIZER_JSON', visualizerJson)
               }
               else if (jsonMessage.command == "sessionTrials"){
-                commit('DATA/SET_SESSION_TRIALS', jsonMessage.content)
+                //console.log("Going to commit to data/SET_SESSION_TRIALS")
+                commit('data/SET_SESSION_TRIALS', jsonMessage.content)
               }
         }
 
