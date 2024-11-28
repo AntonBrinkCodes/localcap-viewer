@@ -95,7 +95,7 @@ export default {
         SET_VISUALIZER_JSON(state, value){
             state.visualizerJSON = value
         },
-        SET_SESSION_TRIALS(state, trials) {
+        SET_SESSION_TRIALS(state, trialDict) {
         // Transform the received JSON into the desired format
         const trials = Object.entries(trialDict).map(([key, value]) => ({
             uuid: value.uuid || '',
