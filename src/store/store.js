@@ -196,27 +196,36 @@ export default createStore({
       });
     },
     
-    sendMessage({ state }, {message, session_id = null}) {
-        console.log(message)
-        const data = message
-        const id = session_id
-        // Send to session
-        if(id==state.sessionID){
-          console.log(state.sessionWebSocket)
-          if (state.sessionWebSocket && state.connectionStatus ==='Connected'){
-            // TODO: Add logic to reconnect to this sessionID if it's not active-
-            console.log("sending to session")
-            state.sessionWebSocket.send(data)
-          }
-        // Send to general server.
-        } else {
-          if (state.webSocket && state.connectionStatus === 'Connected') {
-          console.log("sending to general ws")
-          state.webSocket.send(data);
+    async sendMessage({ state, dispatch }, { message, session_id = null }) {
+      console.log("Sending message:", message);
+      const data = message;
+    
+      if (session_id === state.sessionID) {
+        // Ensure the session WebSocket is connected
+        if (!state.sessionWebSocket || state.sessionWebSocket.readyState !== WebSocket.OPEN) {
+          console.log("Session WebSocket not connected, connecting now...");
+          try {
+            await dispatch('connectSessionWebSocket'); // Wait for connection
+          } catch (error) {
+            console.error("Failed to connect to session WebSocket:", error);
+            return; // Exit if connection fails
           }
         }
-        
-      },
+    
+        // Send to the session WebSocket
+        if (state.sessionWebSocket) {
+          console.log("Sending to session WebSocket");
+          state.sessionWebSocket.send(data);
+        }
+      } else {
+        // Send to general WebSocket
+        if (state.webSocket && state.connectionStatus === 'Connected') {
+          console.log("Sending to general WebSocket");
+          state.webSocket.send(data);
+        }
+      }
+    },
+    
     getBASEURL({state}) {
       return state.BASEURL
     },
