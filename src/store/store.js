@@ -127,62 +127,75 @@ export default createStore({
 
       commit('SET_WEBSOCKET', ws);
     },
-    connectSessionWebSocket({ state, commit, dispatch }){
-      console.log('connecting to session WS: ', state.sessionID)
-      const sessionWS = new WebSocket(`ws://${state.BASEURL}/ws/${state.sessionID}/session?client_type=web`);
-
-      sessionWS.onopen = () =>{
-        console.log("ran session WS onopen()")
-      };
-
-      sessionWS.onClose = () => {
-        console.log(`Closing session with id: ${state.SESSIONID}`)
-        
-        //commit('SET_SESSIONID', null)
-      };
-      // TODO: rewrite this to work on JSON :)
-      sessionWS.onmessage = (event) => {
-        const message = event.data
-        console.log(`Message received in sessionWS: ${message}`)
-        console.log(state.sessionID)
-        if (message.startsWith(`Session ${state.sessionID} `)){
-          console.log(`message received from server: ${message}`)
-        // Do stuff related to session
-        // Like maybe change if a trial is processing etc.
-          if (message.startsWith(`Session ${state.sessionID} mobiles connected:`)){
-            commit('SET_SESSION_CAMERAS', parseInt(message.split(": ")[1]))
-          } 
-        } else if (message.startsWith("Toast")){
-          console.log("message starts with Toast")
-          // Send from server via session specific websocket with some info regarding the session.
-          dispatch('triggerToast', message)
-        } else { // Assume it's a JSON.
-              const jsonMessage = JSON.parse(message)
-
-              if (jsonMessage.command=="calibration"){ //Messages regarding calibration
-                const success = jsonMessage.content.match("success")
-                commit('data/SET_CALIBRATED', success )
+    connectSessionWebSocket({ state, commit, dispatch }) {
+      return new Promise((resolve, reject) => {
+        console.log('Connecting to session WS: ', state.sessionID);
+    
+        const sessionWS = new WebSocket(`ws://${state.BASEURL}/ws/${state.sessionID}/session?client_type=web`);
+    
+        // WebSocket onopen handler
+        sessionWS.onopen = () => {
+          console.log("Session WebSocket connected successfully");
+          commit('SET_SESSION_WEBSOCKET', sessionWS); // Commit the WebSocket instance to the state
+          resolve(); // Resolve the Promise
+        };
+    
+        // WebSocket onerror handler
+        sessionWS.onerror = (error) => {
+          console.error("Session WebSocket encountered an error: ", error);
+          reject(error); // Reject the Promise
+        };
+    
+        // WebSocket onclose handler
+        sessionWS.onclose = () => {
+          console.log(`Session WebSocket closed for session ID: ${state.sessionID}`);
+          commit('SET_SESSION_WEBSOCKET', null); // Clear the WebSocket instance from the state
+        };
+    
+        // WebSocket onmessage handler
+        sessionWS.onmessage = (event) => {
+          const message = event.data;
+          console.log(`Message received in session WebSocket: ${message}`);
+          console.log(state.sessionID);
+    
+          if (message.startsWith(`Session ${state.sessionID} `)) {
+            console.log(`Message received from server: ${message}`);
+            // Handle session-specific messages
+            if (message.startsWith(`Session ${state.sessionID} mobiles connected:`)) {
+              commit('SET_SESSION_CAMERAS', parseInt(message.split(": ")[1]));
+            }
+          } else if (message.startsWith("Toast")) {
+            console.log("Message starts with Toast");
+            // Handle toast messages
+            dispatch('triggerToast', message);
+          } else {
+            // Assume it's JSON if no specific string match
+            try {
+              const jsonMessage = JSON.parse(message);
+    
+              if (jsonMessage.command == "calibration") {
+                const success = jsonMessage.content.match("success");
+                commit('data/SET_CALIBRATED', success);
+              } else if (jsonMessage.command == "pong") {
+                console.log("Received PONG from session WebSocket");
+              } else if (jsonMessage.command == "visualizerJSON") {
+                console.log("Received new visualizer JSON");
+                const visualizerJson = jsonMessage.content;
+                commit('data/SET_VISUALIZER_JSON', visualizerJson);
+              } else if (jsonMessage.command == "sessionTrials") {
+                console.log("Received session trials");
+                commit('data/SET_SESSION_TRIALS', jsonMessage.content);
               }
-              else if (jsonMessage.command=="pong"){
-                console.log("Got PONG back from session websocket")
-              }
-              else if (jsonMessage.command == "visualizerJSON"){
-                console.log("Got new visualizer JSON")
-                const visualizerJson = jsonMessage.content
-                commit('data/SET_VISUALIZER_JSON', visualizerJson)
-              }
-              else if (jsonMessage.command == "sessionTrials"){
-                commit('DATA/SET_SESSION_TRIALS', jsonMessage.content)
-              }
-        }
-
-      
-        
-        commit('SET_RECEIVED_SESSION_MESSAGE', message)
-      };
-      commit('SET_SESSION_WEBSOCKET', sessionWS)
-
+            } catch (err) {
+              console.error("Error parsing JSON message: ", err);
+            }
+          }
+    
+          commit('SET_RECEIVED_SESSION_MESSAGE', message);
+        };
+      });
     },
+    
     sendMessage({ state }, {message, session_id = null}) {
         console.log(message)
         const data = message
