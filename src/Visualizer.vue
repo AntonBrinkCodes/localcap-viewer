@@ -1,17 +1,11 @@
 <template>
-  <div class="video-player d-flex">
-    <div class="viewer flex-grow-1">
-      <!--<div v-if=true class="d-flex flex-column h-100">-->
-        <div id="mocap" ref="mocap" class="flex-grow-1" />
-      </div>
-      <!--<div v-else class="flex-grow-1 d-flex align-center justify-center">
-        <p>Loading...</p>
-      </div>
+  <div class="flex-grow-1 flex-shrink-0" style="min-width: 100px; max-width: 100%; height: 100vh;">
+    <div class="viewer flex-grow-1" style="min-width: 100px; max-width: 100%; height: 100%;">
+      <div id="mocap" ref="mocap"></div>
     </div>
-    <router-view />-->
-
   </div>
 </template>
+
 
 <script>
 import * as THREE from 'three';
@@ -65,7 +59,7 @@ export default {
           this.addEnvironment();
         }
       },
-      immediate: true,
+      immediate: false,
     },
   },
   mounted() {
@@ -74,8 +68,33 @@ export default {
     this.loadAnimationData();
     this.$nextTick(() =>{
       //this.initThreeJS();
-      this.setup3d();
-      this.addEnvironment();
+      const container = this.$refs.mocap;
+
+      if (!container) {
+        console.error("Container not found")
+        return
+      } else{
+        console.info("container: ", container)
+         // Log container dimensions
+         const width = container.clientWidth;
+        const height = container.clientHeight;
+
+        console.info("Container Dimensions - Width:", width, "Height:", height);
+
+        if (width === 0 || height === 0) {
+            console.warn("Container has zero width or height. Check parent container styles.");
+            /* DEBUG CONDITIONS */
+            let parent = container.parentElement;
+            while (parent) {
+            console.info("Parent Dimensions - Width:", parent.clientWidth, "Height:", parent.clientHeight);
+            parent = parent.parentElement;
+}
+        } else {
+        this.setup3d();
+        this.addEnvironment();
+      }
+    }
+      
   });
   },
   methods: {
@@ -95,12 +114,17 @@ export default {
         this.frames = this.animationJson.time;
         this.trialLoading = false;
       //});
-      console.log("loaded data?", this.animation_json);
+      //console.log("loaded data?", this.animation_json);
       console.log("frames", this.frames)
     },
     setup3d() {
       const container = this.$refs.mocap
-      console.log("container", container)
+      console.log("container in setup3d():", container)
+      if(!container){
+        console.error("For some reason no container in setup3d()")
+      } else {
+      console.log("clientWidth: ", container.clientWidth)
+      console.log("ClientHeight: ", container.clientHeight)
       let ratio = container.clientWidth / container.clientHeight
       this.camera = new THREE.PerspectiveCamera(45, ratio, 0.1, 125)
       this.camera.position.x = 4.5
@@ -117,6 +141,7 @@ export default {
       container.appendChild(this.renderer.domElement);
       this.onResize()
       this.controls = new THREE_OC.OrbitControls(this.camera, this.renderer.domElement)
+      }
     },
     addEnvironment() {
      // show3d
@@ -215,12 +240,16 @@ export default {
             const container = this.$refs.mocap
             if (container && this.renderer) {
                 this.renderer.setSize(container.clientWidth, container.clientHeight)
+            } else {
+              console.error("Error! No cointainer or renderer in onResize")
             }
 
             if (this.renderer) {
                 const canvas = this.renderer.domElement;
                 this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
                 this.camera.updateProjectionMatrix();
+            } else {
+              console.error("Error! No renderer in onResize")
             }
         },
         animate() {
@@ -306,7 +335,7 @@ export default {
     
     // Determine current frame
     this.frame = (this.frame + 1) % this.frames.length; // Loop back to the start if end is reached
-    console.log("this.frame is: ", this.frame);
+   // console.log("this.frame is: ", this.frame);
     if (this.frame >= this.frames.length) {
         this.frame = this.frames.length - 1;
     }
@@ -416,10 +445,11 @@ togglePlay(value) {
 <style lang="scss">
 
 .video-player {
-    height: calc(100% - 64px);
+    height: 100vh;//calc(100vh - 64px);
 
     .left {
-        width: 250px;
+        width: 100vh;
+        height: 100vh;
 
         .trials {
             overflow-y: auto;
@@ -437,17 +467,19 @@ togglePlay(value) {
     }
 
     .viewer {
-        height: 100%;
+        height: 100vh;
 
         #mocap {
-            width: 100%;
+            width: 100vh;
             overflow: hidden;
+            height: 100vh;
 
             canvas {
-                width: 100% !important;
+              width: 100% !important; // Ensure the canvas adapts to the container width.
+              height: 100% !important; // Ensure the canvas adapts to the container height.
             }
         }
-    }
+      }
 
     .right {
         flex: 0 0 200px;
