@@ -59,10 +59,14 @@ export default {
     animationJson: {
       handler(newValue) {
         if (newValue) {
-          this.initializeInstance();
+          this.trialLoading = true;
+          //this.initializeInstance();
+          this.frame = 0;
+          this.playing = false;
           this.loadAnimationData();
-          this.setup3d();
-          this.addEnvironment();
+          this.loadAndReplaceSkeleton();
+          //this.setup3d();
+          //this.addEnvironment();
         }
       },
       immediate: true,
@@ -178,27 +182,7 @@ export default {
        // add bones
        //this.meshes = {};
       if (this.animation_json !== undefined && this.animation_json !== null) {
-       for (let body in this.animation_json.bodies) {
-      let bd = this.animation_json.bodies[body]
-      bd.attachedGeometries.forEach((geom) => {
-          let path = 'https://mc-opencap-public.s3.us-west-2.amazonaws.com/geometries/' + geom.substr(0, geom.length - 4) + ".obj";
-          objLoader.load(path, (root) => {
-              root.castShadow = true;
-              root.receiveShadow = true;
-              root.traverse(function (child) {
-                  if (child instanceof THREE.Mesh) {
-                      //                               child.receiveShadow = true;
-                      child.castShadow = true;
-                  }
-              });
-              //console.log("body is ", body)
-              //console.log("geom is ", geom)
-              this.meshes[body + geom] = root;
-              this.meshes[body + geom].scale.set(bd.scaleFactors[0], bd.scaleFactors[1], bd.scaleFactors[2])
-              this.scene.add(root);
-          })
-      })
-  }
+      this.loadAndReplaceSkeleton()
   
 }
 // finally..  
@@ -221,10 +205,12 @@ this.onResize()
   onResize() {
             const container = this.$refs.mocap
             if (container && this.renderer) {
+                console.log("Container and renderer exists!")
                 this.renderer.setSize(container.clientWidth, container.clientHeight)
             }
 
             if (this.renderer) {
+              console.log("Renderer exists :)")
                 const canvas = this.renderer.domElement;
                 this.camera.aspect = canvas.clientWidth / canvas.clientHeight;
                 this.camera.updateProjectionMatrix();
@@ -232,7 +218,7 @@ this.onResize()
         },
         animate() {
             // cancel display cycle if loading of new trial started
-            if (!this.trialLoading && this.animation_json) {
+            if (!this.trialLoading) {
                 this.delay(33.33333).then(()=> { // Super dumb but to force 30 fps right now
                   requestAnimationFrame(this.animate)
                   this.animateOneFrameNoVid()
@@ -307,7 +293,7 @@ this.onResize()
             }
         },
   animateOneFrameNoVid() {
-    console.log("this.animation_json is: ", this.animation_json)
+    //console.log("this.animation_json is: ", this.animation_json)
     if (this.animation_json !== undefined && this.animation_json !== null) {
     let cframe;
     //console.log("Animating frame no video");
@@ -315,7 +301,7 @@ this.onResize()
     
     // Determine current frame
     this.frame = (this.frame + 1) % this.frames.length; // Loop back to the start if end is reached
-    console.log("this.frame is: ", this.frame);
+    //console.log("this.frame is: ", this.frame);
     if (this.frame >= this.frames.length) {
         this.frame = this.frames.length - 1;
     }
@@ -341,7 +327,7 @@ this.onResize()
             });
         }
     }
-    
+  }
     try {
         this.renderer.render(this.scene, this.camera);
       } catch (error) {
@@ -349,7 +335,7 @@ this.onResize()
       console.error("Scene:", this.scene);
       console.error("Camera:", this.camera);
     }
-  }
+  
 },
 togglePlay(value) {
             this.playing = value
@@ -419,7 +405,76 @@ togglePlay(value) {
       this.camera.updateProjectionMatrix();
       this.renderer.setSize(window.innerWidth, window.innerHeight);
     },*/
+    loadAndReplaceSkeleton() {
+    for (let body in this.animation_json.bodies) {
+      let bd = this.animation_json.bodies[body];
+      
+      // Remove all existing meshes from the scene
+      for (const key in this.meshes) {
+        if (Object.prototype.hasOwnProperty.call(this.meshes, key)) {
+          const mesh = this.meshes[key];
+          //console.log("Removing:", mesh);
+        
+          // Remove the mesh from the scene
+          this.scene.remove(mesh);
+        
+          // Dispose of the mesh to free up resources
+          this.disposeMesh(mesh);
+        
+          // Clear the reference from meshes
+          delete this.meshes[key];
+        }
+      }
+      bd.attachedGeometries.forEach((geom) => {
+        let geometryKey = body + geom;
+        let path = 'https://mc-opencap-public.s3.us-west-2.amazonaws.com/geometries/' + geom.substr(0, geom.length - 4) + ".obj";
+        
+        
+        
+        // Load the new geometry
+        objLoader.load(path, (root) => {
+          root.castShadow = true;
+          root.receiveShadow = true;
+          
+          root.traverse(function (child) {
+            if (child instanceof THREE.Mesh) {
+              child.castShadow = true;
+              // Optionally, you can also set receiveShadow here, if needed:
+              // child.receiveShadow = true;
+            }
+          });
+
+          // Store the loaded geometry in the meshes object
+          this.meshes[geometryKey] = root;
+          this.meshes[geometryKey].scale.set(bd.scaleFactors[0], bd.scaleFactors[1], bd.scaleFactors[2]);
+          
+          // Add the new geometry to the scene
+          this.scene.add(root);
+          
+
+        });
+      });
+      this.renderer.render(this.scene, this.camera)
+    }
   },
+  disposeMesh(mesh) {
+    // Dispose of materials
+    if (mesh.material) {
+      mesh.material.dispose();
+    }
+
+    // Dispose of geometry if it's set
+    if (mesh.geometry) {
+      mesh.geometry.dispose();
+    }
+
+    // Optionally, you can also dispose of any textures, but this depends on your use case
+    if (mesh.material && mesh.material.map) {
+      mesh.material.map.dispose();
+    }
+  }
+},
+
 };
 </script>
 
@@ -427,9 +482,9 @@ togglePlay(value) {
 
 .video-player {
     height: calc(100% - 64px);
-
+    width: 100vh;
     .left {
-        width: 250px;
+        width: 100vh;
 
         .trials {
             overflow-y: auto;
@@ -450,6 +505,7 @@ togglePlay(value) {
         height: 100%;
 
         #mocap {
+          height: 100vh;
             width: 100%;
             overflow: hidden;
 

@@ -147,3 +147,48 @@ export default{
 }
 
 </script>
+
+<style scoped>
+.visualizer-container {
+  /* Flex container settings to fill available space */
+  display: flex;
+  justify-content: center;  /* Center the content horizontally */
+  align-items: center;      /* Center the content vertically */
+  height: 100vh;            /* Ensure it takes full height of the viewport */
+  width: 100vh;              /* Ensure it takes full width of the container */
+}
+
+.visualizer-card {
+  /* Optional: Add some padding or a fixed size for the visualizer card */
+  width: 100vh;
+  height: 100vh;
+  max-width: 100vh;          /* Prevent overflow */
+  max-height: 100vh;         /* Prevent overflow */
+  display: flex;
+  justify-content: center;  /* Center the visualizer within the card */
+  align-items: center;      /* Center the visualizer within the card */
+}
+
+.subject-title {
+  font-size: 1.25rem;
+  font-weight: bold;
+  color: #1976D2;
+  text-align: center;
+}
+
+.d-flex {
+  display: flex;
+}
+
+.flex-column {
+  flex-direction: column;
+}
+
+.justify-start {
+  justify-content: flex-start;
+}
+
+.justify-center {
+  justify-content: center;
+}
+</style>
