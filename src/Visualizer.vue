@@ -71,7 +71,10 @@ export default {
   mounted() {
     console.log("Mount Visualizer...")
     this.initializeInstance();
-    this.loadAnimationData();
+    if (this.animation_json !== undefined && this.animation_json !== null) {
+      this.loadAnimationData();
+    }
+    
     this.$nextTick(() =>{
       //this.initThreeJS();
       this.setup3d();
@@ -174,6 +177,7 @@ export default {
      }
        // add bones
        //this.meshes = {};
+      if (this.animation_json !== undefined && this.animation_json !== null) {
        for (let body in this.animation_json.bodies) {
       let bd = this.animation_json.bodies[body]
       bd.attachedGeometries.forEach((geom) => {
@@ -195,11 +199,14 @@ export default {
           })
       })
   }
-  // finally..  
-  this.trialLoading = false
+  
+}
+// finally..  
+this.trialLoading = false
 
-  this.onResize()
-  // animate
+this.onResize()
+// animate
+  
 
 
 
@@ -225,7 +232,7 @@ export default {
         },
         animate() {
             // cancel display cycle if loading of new trial started
-            if (!this.trialLoading) {
+            if (!this.trialLoading && this.animation_json) {
                 this.delay(33.33333).then(()=> { // Super dumb but to force 30 fps right now
                   requestAnimationFrame(this.animate)
                   this.animateOneFrameNoVid()
@@ -300,6 +307,8 @@ export default {
             }
         },
   animateOneFrameNoVid() {
+    console.log("this.animation_json is: ", this.animation_json)
+    if (this.animation_json !== undefined && this.animation_json !== null) {
     let cframe;
     //console.log("Animating frame no video");
     let frames = this.frames.length;
@@ -340,6 +349,7 @@ export default {
       console.error("Scene:", this.scene);
       console.error("Camera:", this.camera);
     }
+  }
 },
 togglePlay(value) {
             this.playing = value

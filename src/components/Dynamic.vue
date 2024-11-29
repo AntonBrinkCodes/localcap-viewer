@@ -1,53 +1,46 @@
 <template>
-
-    <v-card class="mb-4">
+<v-row>
+    <!-- Left Column: Buttons and TrialList -->
+    <v-col cols="4" class="d-flex flex-column justify-start">
+      <v-card class="mb-4">
         <v-card-title class="justify-center subject-title">
           Dynamic trials (WIP)
         </v-card-title>
 
         <v-card-text>
-            <v-btn @click="startDynamic">
-                Run dynamic Trial
-             <v-tooltip
-                activator="parent"
-                location="bottom"
-            >Run test dynamic trial on backend.</v-tooltip>
-            </v-btn>
+          <v-btn @click="startDynamic">
+            Run dynamic Trial
+            <v-tooltip activator="parent" location="bottom">
+              Run test dynamic trial on backend.
+            </v-tooltip>
+          </v-btn>
         </v-card-text>
 
-        <v-btn @click="this.$router.push(`/`)" >
-            Back to home
-        </v-btn>
-
+        <v-btn @click="this.$router.push(`/`)">Back to home</v-btn>
 
         <v-card-text>
-            <v-btn @click="this.getVisualizerJson" >
-                Load visualizer Json
-            </v-btn>
+          <v-btn @click="this.getVisualizerJson">Load visualizer Json</v-btn>
         </v-card-text>
 
         <v-card-text>
-            <v-btn @click="this.stopVisualizer" >
-                Stop Visualizer
-            </v-btn>
+          <v-btn @click="this.stopVisualizer">Stop Visualizer</v-btn>
         </v-card-text>
 
-        <v-btn @click="this.getTrials">
-            ask for trials
-        </v-btn>
-    </v-card>
+        <v-btn @click="this.getTrials">Ask for trials</v-btn>
+      </v-card>
 
-    <v-card-text>
-      <!-- Include the Visualizer component and pass the visualizerJson and other necessary data as props -->
-      <Visualizer v-if="visualizerJson" :animation-json="visualizerJson" />
-    </v-card-text>
+      <!-- Trial List -->
+      <TrialList :trials="session.trials" @trial-click="getVisualizerJson" />
+    </v-col>
 
-    <div>
-    <TrialList 
-      :trials="session.trials" 
-      @trial-click="getVisualizerJson"
-    />
-  </div>
+    <!-- Right Column: Visualizer -->
+    <v-col cols="8" class="visualizer-container">
+      <v-card class="d-flex justify-center align-center visualizer-card">
+        <!-- Visualizer Component -->
+        <Visualizer :animation-json="visualizerJson" />
+      </v-card>
+    </v-col>
+  </v-row>
 
 </template>
 
