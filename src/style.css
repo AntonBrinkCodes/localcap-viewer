@@ -59,16 +59,10 @@ button:focus-visible {
 }
 
 #app {
-  width: 100vw; /* Take the full width of the viewport */
-  height: 100vh; /* Take the full height of the viewport */
-  margin: 0; /* Remove margins */
-  padding: 0; /* Optional: Remove padding */
-  display: flex; /* Use flexbox for content alignment */
-  justify-content: center; /* Center content horizontally */
-  align-items: center; /* Center content vertically */
-}
-#app > * {
-  flex: 1; /* Make child elements grow to fill the available space */
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
 }
 
 @media (prefers-color-scheme: light) {
