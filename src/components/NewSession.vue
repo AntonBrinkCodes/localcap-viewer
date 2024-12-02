@@ -68,6 +68,7 @@ import { mapMutations } from 'vuex/dist/vuex.cjs.js';
     }),
       qrURL() {
         console.log(`ws://${this.BASEURL}/ws/${this.sessionID}/session`)
+        console.log(`${this.BASEURL}/${this.sessionID}`)
         return `ws://${this.BASEURL}/ws/${this.sessionID}/session`;
       },
     },
