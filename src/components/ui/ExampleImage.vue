@@ -35,13 +35,13 @@
       }
     },
     computed: {
-      getStyle () {
-        return {
-          'background-image': `url(${this.image})`,
-          width: `${this.width}px`,
-          height: `${this.height}px`,
-        }
-      }
+      getStyle() {
+    return {
+      'background-image': `url(${this.image ? new URL(this.image, import.meta.url).href : ''})`,
+      width: `${this.width}px`,
+      height: `${this.height}px`,
+    };
+  }
     }
   }
   </script>

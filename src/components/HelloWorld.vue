@@ -195,10 +195,9 @@ export default {
       const askForSessionmsg = {
         command:"get_sessions"
       }
-      this.sendMessage({
-        message: JSON.stringify(askForSessionmsg),
-        
-      })
+      console.log(askForSessionmsg)
+      this.sendMessage(JSON.stringify(askForSessionmsg));
+
     },
     onRowClick(item, params){
       console.log("clicked on row: ", params.item.uuid)
@@ -234,11 +233,12 @@ export default {
       const deletemsg = {
       command: "delete_session",
       content: this.sessionToDelete,
+      session: sessionID
     }
     console.log(deletemsg)
-      this.sendMessage({
-      message: JSON.stringify(deletemsg),
-      })
+      this.sendMessage(
+      JSON.stringify(deletemsg),
+      )
     },
     startRecording(){
       this.$store.dispatch('sendMessage', 'start')
@@ -251,7 +251,6 @@ export default {
       if(this.sessionID || this.$store.state.sessionWebSocket){
         console.log("Removing old session")
         // remove session ID and disconnect session websockets
-
         this.$store.dispatch('disconnectSessionWebSocket')
         
       }
@@ -261,7 +260,10 @@ export default {
 
       // Create a session on the websocket and get the UUID for it.
       // This should also Commit UUID to state.
-      await this.$store.dispatch('createSessionOnServer', 'newSession')
+      const newSessionMsg = {
+        command: "newSession"
+      }
+      await this.$store.dispatch('createSessionOnServer', JSON.stringify(newSessionMsg))
 
       // Check sessionID every 0.1 seconds. Waiting for response from server basically.
       this.checkSessionCondition({

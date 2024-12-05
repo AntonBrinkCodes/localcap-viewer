@@ -1,5 +1,5 @@
 <template>
-  <MainLayout leftButton="Back" rightButton="Record Neutral" :step="4" :rightDisabled="this.cameras >= 2"
+  <MainLayout leftButton="Back" rightButton="Record Neutral" :step="4" :rightDisabled="this.subject === null "
     @left="this.$router.push(`/${this.sessionID}/calibration`)" @right="onNext">
 
     <div class="step-4-1 d-flex flex-column">
@@ -106,7 +106,7 @@
 
       <v-card class="mb-0">
         <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
-          <p>{{ 0 }} of {{ this.cameras }} videos uploaded</p>
+          <p>{{ uploadedVideosCount }} of {{ this.cameras }} videos uploaded</p>
         </v-card-text>
       </v-card>
 
@@ -136,12 +136,13 @@
         </div>
         <div class="d-flex flex-column align-center ">
           <span class="sub-header" style="font-size: 18px;">Example neutral pose</span>
-          <ExampleImage image="/src/assets/images/big_good_triangle.jpg" :width="256" :height="341" good />
+          
+          <ExampleImage :image="imageSrc" :width="256" :height="341" good />
         </div>
       </v-card-text>
-      <v-card-title class="justify-center" style="font-size: 18px; word-break: break-all;">
+     <!-- <v-card-title class="justify-center" style="font-size: 18px; word-break: break-all;">
         If the subject cannot adopt the example neutral pose, select "Any pose" scaling setup under Advanced Settings
-      </v-card-title>
+      </v-card-title> -->
 
       <div class="d-flex justify-center">
         <div class="text-center">
@@ -175,7 +176,9 @@ import { mapState, mapActions, mapMutations } from 'vuex'
 import MainLayout from '/src/layout/MainLayout.vue'
 import NewSubjectDialog from './ui/NewSubjectDialog.vue'
 import ExampleImage from './ui/ExampleImage.vue';
-import { v4 as uuidv4 } from "uuid";
+import { NIL, v4 as uuidv4 } from "uuid";
+import bigGoodTriangle from '../assets/images/big_good_triangle.png';
+
 
 
 export default {
@@ -190,10 +193,8 @@ export default {
     const pingmsg = {
       command: "ping"
     }
-    this.sendMessage({
-      message: JSON.stringify(pingmsg),
-      session_id: this.sessionID
-    })
+    this.sendMessage(JSON.stringify(pingmsg)
+    )
   },
   data() {
     return {
@@ -206,6 +207,7 @@ export default {
         data_sharing_agreement: null,
         subject_tags: null,
       },
+      imageSrc: bigGoodTriangle,
       sessionName: '',
       subject: null,
       subject_loading: false,
@@ -224,6 +226,7 @@ export default {
     ...mapState({
       sessionID: state => state.sessionID,
       cameras: state => state.sessionCameras,
+      uploadedVideosCount: state => state.uploadedVideos,
     }),
     ...mapState('data', {
       subjects: state => state.subjects,
@@ -260,7 +263,20 @@ export default {
       this.loaded_subjects = newSubjectList;
       this.subject_loading = false;
       console.log(this.loaded_subjects);
-    }
+    },
+    uploadedVideosCount(newAmount) {
+      if (newAmount == this.cameras) {
+        // Send to server to actually process it.
+        const processTrialMsg = {
+          command: "process_trial",
+          trialType: "neutral",
+          subject: this.subject,
+          isTest: this.isTest,
+          session: this.sessionID
+        }
+        this.sendMessage(JSON.stringify(processTrialMsg))
+      }
+    },
   },
   methods: {
     ...mapActions(['sendMessage']),
@@ -272,15 +288,16 @@ export default {
       //this.loadSubjectsList(false);
       console.log('is this a test run? :', this.isTest)
       console.log(this.sessionID)
+      // TODO: Change this so that it just asks to start recording.
       const startNeutralMsg = {
         command: "start_neutral",
         subject: this.subject,
         isTest: this.isTest,
+        session: this.sessionID,
       }
-      this.sendMessage({
-        message: JSON.stringify(startNeutralMsg),
-        session_id: this.sessionID
-      });
+      this.sendMessage(
+        JSON.stringify(startNeutralMsg),
+      );
 
 
     },
@@ -300,9 +317,9 @@ export default {
       const subjectsMsg = {
         command: 'get_subjects',
       };
-      this.$store.dispatch('sendMessage', {
-        message: JSON.stringify(subjectsMsg)
-      });
+      this.$store.dispatch('sendMessage', 
+        JSON.stringify(subjectsMsg)
+      );
     },
     openNewSubjectPopup(value) {
       this.showDialog = value;
@@ -318,9 +335,9 @@ export default {
         command: 'save_subject',
         content: subject
       }
-      this.$store.dispatch('sendMessage', {
-        message: JSON.stringify(savesubjMsg)
-      });
+      this.$store.dispatch('sendMessage', 
+        JSON.stringify(savesubjMsg)
+      );
     },
     submitAddSubject(data) {
       console.log('submitAddSubject', data)

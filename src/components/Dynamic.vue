@@ -27,10 +27,22 @@
         </v-card-text>
 
         <v-btn @click="this.getTrials">Ask for trials</v-btn>
+
+        <v-row>
+          <v-card-text>
+          <v-btn @click="this.downloadSession">Download Session</v-btn>
+          <p> {{ this.downloadInformationMessage }} </p>
+        </v-card-text>
+
+        
+        </v-row>
+        
+
       </v-card>
+     
 
       <!-- Trial List -->
-      <TrialList :trials="session.trials" @trial-click="getVisualizerJson" />
+      <TrialList :trials="session.trials" @trial-click="selectTrial" />
     </v-col>
 
     <!-- Right Column: Visualizer -->
@@ -56,41 +68,71 @@ export default{
         Visualizer,
         TrialList,
     },
+    mounted() {
+        this.getTrials()
+    },
     data () {
         return {
             trialName: "", // To enter new trialName
+            selectedTrial: null, // 
         }
     },
     computed: {
         ...mapState({
             sessionID: state => state.sessionID,
             cameras: state => state.sessionCameras,
+            chunkSize: state => state.chunkSize,
+            isDownloading: state => state.isDownloading,
+            totalChunks: state => state.totalChunks,
+            receivedChunks: state => state.receivedChunks,
         }),
         ...mapState('data',{
             isTest: state => state.test_session,
             session: state => state.session,
             visualizerJson: state => state.visualizerJSON
         }),
+        downloadInformationMessage(){
+        if (this.isDownloading){
+          return `Zipping file....`
+        }
+        else {
+          return ""
+        }
+      }
     },
     watch: {
         session(newTrials) {
+            "sessions changed"
             console.log(newTrials)
-        }
+        },
     },
     methods: {
         ...mapActions(['sendMessage', 'getBASEURL']),
         startDynamic() {
+          // TODO: FIX THIS TO DO RECORD -> UPLOAD -> WAIT FOR BACKEND TO SAY ALL VIDEOS ARE UPLOADED -> PROCESS TRIAL.
             const startDynamicMsg = {
                 command: "start_dynamic",
                 trialName: this.trialName,
                 isTest: this.isTest,
-                session: this.sessionID
+                session: this.sessionID,
+                trialID: this.selectedTrial.uuid
             }
             console.log('message is: ', startDynamicMsg)
-            this.sendMessage({
-                message: JSON.stringify(startDynamicMsg),
-                session_id: this.sessionID
-            })
+            this.sendMessage(
+                JSON.stringify(startDynamicMsg)
+            )
+        },
+        processDynamicTrial(trial){
+          const startDynamicMsg = {
+            command: "start_dynamic",
+            trialName: trial.trialName,
+            isTest: this.isTest,
+            session: this.sessionID,
+            trialID: trial.uuid,
+          }
+          console.log('message is', startDynamicMsg)
+          this.sendMessage(JSON.stringify(startDynamicMsg))
+
         },
         getTrials(){
             const getTrialsMsg = {
@@ -98,16 +140,27 @@ export default{
                 isTest: this.isTest,
                 session: this.sessionID              
             }
-            this.sendMessage({
-                message: JSON.stringify(getTrialsMsg),
-                session_id: this.sessionID
-            })
+            this.sendMessage(
+                JSON.stringify(getTrialsMsg)
+            )
         },
         stopVisualizer(){
             this.visualizerJSON = null
             this.$store.commit('data/SET_VISUALIZER_JSON', null)
         },
+        selectTrial(trial){
+          this.selectedTrial = trial
+          if (trial.processed){
+            this.getVisualizerJson(trial)
+          }
+          else {
+            // TODO: Check if all videos exist.
+            // Process dynamic trial
+            this.processDynamicTrial(trial)
+          }
+        },
         getVisualizerJson(trial) {
+          this.selectedTrial = trial
             const visualizerJsonMsg = {
                 command: "get_visualizer",
                 trialName: trial.trialName,
@@ -115,9 +168,8 @@ export default{
             }
             console.log(visualizerJsonMsg)
             if(trial.processed == true) {
-                this.sendMessage({message: JSON.stringify(visualizerJsonMsg),
-                session_id: this.sessionID
-            })
+                this.sendMessage(JSON.stringify(visualizerJsonMsg)
+            )
             }
             
             //this.visualizerJson = animationData
@@ -131,11 +183,17 @@ export default{
                 console.error('Failed to load JSON data:', error);
             });*/
         },
+        downloadSession() {
+        // Send a WebSocket request to download the session
+          const downloadMsg = {
+            command: "download_session",
+            session: this.sessionID,
+          }
+          this.sendMessage(JSON.stringify(downloadMsg))
     },
-    onMounted() {
-        console.log('the visualizerJSON is: ', visualizerJson)
-        //this.getTrials()
+      
     },
+    
     unmounted() {
         console.log("Unmounting Dynamic.")
         const emptyDict = {}

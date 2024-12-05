@@ -8,90 +8,110 @@
     @left="$router.push(`/${sessionID}/session`)"
     @right="onNext"
   >
-    <v-card class="step-2-2 mt-4 flex-grow-1 pa-4">
-      <v-row class="align-center">
-        <v-col cols="6" class="pr-4">
-          <v-card-title class="justify-center text-h6">
-            Place a checkerboard in the scene
-          </v-card-title>
-          <v-card-text class="d-flex flex-column text-left text-body-1">
-            <ul class="pl-4">
-              <li>It should be visible by all cameras (nothing in the way of cameras' view when hitting Calibrate)</li>
-              <li>It should be horizontal (longer side on the floor)</li>
-              <li>It should be perpendicular to the floor (not lying on the floor)</li>
-            </ul>
-          </v-card-text>
-        </v-col>
+  <v-container fluid>
+    <!-- Row 1 -->
+    <v-row class="row-equal">
+      <v-col cols="12">
+        <v-card class="step-2-2 flex-grow-1 pa-4">
+          <v-row class="align-center">
+            <v-col cols="6" class="pr-4">
+              <v-card-title class="justify-center text-h6">
+                Place a checkerboard in the scene
+              </v-card-title>
+              <v-card-text class="d-flex flex-column text-left text-body-1">
+                <ul class="pl-4">
+                  <li>It should be visible by all cameras (nothing in the way of cameras' view when hitting Calibrate)</li>
+                  <li>It should be horizontal (longer side on the floor)</li>
+                  <li>It should be perpendicular to the floor (not lying on the floor)</li>
+                </ul>
+              </v-card-text>
+            </v-col>
 
-        <v-col cols="6" class="pl-4">
-          <div class="image-container text-center">
-            <img src="../assets/images/big_good_triangle.jpg" class="img-fluid" alt="Checkerboard Placement" style="max-width: 50%; height: auto;" />
-          </div>
-        </v-col>
-      </v-row>
-    </v-card>
+            <v-col cols="6" class="pl-4">
+              <div class="image-container text-center">
+                <img 
+                  src="../assets/images/checkerboard-placement.png" 
+                  class="img-fluid checkerboard-image" 
+                  alt="Checkerboard Placement" 
+                />
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+    </v-row>
 
-    <v-card class="step-2-2 mt-4 flex-grow-1 pa-4">
-      <v-row class="align center">
-        <v-col cols="6" class="pr-4">
-          <v-card-title class="align-center">Provide the checkerboard details</v-card-title>
+    <!-- Row 2 -->
+    <v-row class="row-equal">
+      <v-col cols="12">
+        <v-card class="step-2-2 flex-grow-1 pa-4">
+          <v-row class="align-center">
+            <v-col cols="6" class="pr-4">
+              <v-card-title class="align-center">Provide the checkerboard details</v-card-title>
+              <v-card-text class="d-flex align-center">
+                <div class="d-flex flex-grow-1 align-center inputs">
+                  <v-text-field v-model="rows" label="Rows" class="mr-3" />
+                  <v-text-field v-model="cols" label="Columns" class="mr-3" />
+                  <v-text-field v-model="squareSize" label="Square size (mm)" />
+                  <v-select 
+                    v-model="placement"
+                    :items="items"
+                    item-title="name"
+                    label="Placement"
+                  >
+                    <template v-slot:item="{ props, item }">
+                      <v-list-item v-bind="props" :subtitle="item.descr"></v-list-item>
+                    </template>
+                  </v-select>
+                </div>
+              </v-card-text>
+            </v-col>
 
-          <v-card-text class="d-flex align-center">
-            <div class="d-flex flex-grow-1 align-center inputs">
-              <v-text-field v-model="rows" label="Rows" class="mr-3" />
-              <v-text-field v-model="cols" label="Columns" class="mr-3" />
-              <v-text-field v-model="squareSize" label="Square size (mm)" />
-              <v-select 
-                v-model="placement"
-                :items="items"
-                item-title="name"
-                label="Placement"
-              >
-                <template v-slot:item="{ props, item }">
-                  <v-list-item v-bind="props" :subtitle="item.descr"></v-list-item>
-                </template>
-              </v-select>
-            </div>
-          </v-card-text>
-        </v-col>
-
-        <v-col cols="6" class="pr-4">
-          <div class="image-container text-center">
-            <img src="/src/assets/images/checkerboard_45.png" class="img-fluid" style="max-width: 50%; height: auto;" />
-          </div>
-        </v-col>
-      </v-row>
-    </v-card>
+            <v-col cols="6" class="pl-4">
+              <div class="image-container text-center">
+                <img 
+                  src="/src/assets/images/checkerboard_45.png" 
+                  class="img-fluid checkerboard-image" 
+                  alt="Checkerboard Placement" 
+                />
+              </div>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+    </v-row>
 
     <!-- Debug Section -->
-    <v-card-text class="step-2-2 mt-4 flex-grow-1 p-0" style="width: 100%;">
-      <v-card-title class="justify-center">DEBUG:</v-card-title>
-
-      <!-- Input Field and Button in a Row -->
-      <v-row class="mt-4" no-gutters>
-        <v-col cols="2">
-          <v-checkbox
-            v-model="testSession"
-            label="Use test sessions instead of recorded"
-          ></v-checkbox>
-        </v-col>
-        <v-col cols="18" class="pr-2">
-          <v-text-field 
-            v-model="inputMessage"
-            clearable 
-            label="Debug Message" 
-            variant="solo-filled"
-            full-width
-            style="height: 56px;">
-          </v-text-field>
-        </v-col>
-        <v-col cols="2">
-          <v-btn @click="sendMessage" block style="height: 56px;">
-            Send
-          </v-btn>
-        </v-col>
-      </v-row>
-    </v-card-text>
+    <v-row class="debug-row">
+      <v-col cols="12">
+        <v-card class="step-2-2 flex-grow-1 p-4">
+          <v-card-title class="justify-center">DEBUG:</v-card-title>
+          <v-row class="mt-4" no-gutters>
+            <v-col cols="2">
+              <v-checkbox
+                v-model="testSession"
+                label="Use test sessions instead of recorded"
+              ></v-checkbox>
+            </v-col>
+            <v-col cols="8" class="pr-2">
+              <v-text-field 
+                v-model="inputMessage"
+                clearable 
+                label="Debug Message" 
+                variant="solo-filled"
+                full-width
+              />
+            </v-col>
+            <v-col cols="2">
+              <v-btn @click="sendMessage" block>
+                Send
+              </v-btn>
+            </v-col>
+          </v-row>
+        </v-card>
+      </v-col>
+    </v-row>
+  </v-container>
   </MainLayout>
 </template>
 
@@ -125,6 +145,7 @@ export default {
       BASEURL: state => state.BASEURL,
       sessionID: state => state.sessionID,
       cameras: state => state.sessionCameras,
+      uploadedVideos: state => state.uploadedVideos,
     }),
     ...mapState('data', {
       calibrated: state => state.calibrated,
@@ -148,6 +169,13 @@ export default {
         //this.$router.push(`/${this.sessionID}/neutral`);
       }
     },
+    uploadedVideos(newValue){
+      if (newValue == this.cameras){
+        this.$store.dispatch('RESET_UPLOADED_VIDEOS')
+        console.log("READY TO CALIBRATE :)")
+        this.triggerToast({toastType: "Info", message: "All videos uploaded"})
+      }
+    }
   },
   created() {
     this.placement = this.items[0].name;
@@ -158,7 +186,7 @@ export default {
     console.log(`Number of cameras is: ${this.cameras}`);
   },
   methods: {
-    ...mapActions(['sendMessage', 'getBASEURL']),
+    ...mapActions(['sendMessage', 'getBASEURL', 'triggerToast']),
     ...mapMutations('data', {
       setTestSession: 'SET_TEST_SESSION',
     }),
@@ -166,10 +194,12 @@ export default {
       console.log('onNext pressed');
       console.log(this.placement);
       if (!this.calibrated){
-        // run calibration
+        // run calibration. the back end handles stopping after 1 second for calibration and such.
         const calibMessage = {
           session: this.sessionID,
-          command: 'start_calibration',
+          command: 'start_recording',
+          trialType: "calibration",
+          trialId: "calibration",
           rows: this.rows,
           cols: this.cols,
           squareSize: this.squareSize,
@@ -178,10 +208,9 @@ export default {
         };
 
         console.log(JSON.stringify(calibMessage));
-        this.sendMessage({
-          message: JSON.stringify(calibMessage),
-          session_id: this.sessionID,
-        });
+        this.sendMessage(JSON.stringify(calibMessage)
+    
+        );
       }
       // Move to the next route after calibration
       else if (this.calibrated) {
@@ -192,16 +221,29 @@ export default {
 };
 </script>
 
-<style lang="scss">
-.step-2-1 li {
-  font-size: 24px;
-
-  &:not(:last-child) {
-    margin-bottom: 24px;
-  }
+<style scoped>
+/* Make all rows share equal height */
+.row-equal {
+  flex: 1;
+  display: flex;
 }
 
-.step-2-2 .inputs > * {
-  flex: 0 0 150px;
+/* Debug row smaller height */
+.debug-row {
+  flex: 0.3;
+}
+
+/* Image scaling */
+.checkerboard-image {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+}
+
+/* Ensure the container fills space */
+v-container {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
 }
 </style>

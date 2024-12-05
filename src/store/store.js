@@ -3,8 +3,8 @@ import { createStore } from 'vuex';
 import data from '@/store/data'
 
 // Replace baseURL with where fastAPI backend is hosted. Perhaps should not be state but in env thing
-//192.168.0.48 home
-const baseURL = "130.229.141.43:" // LINUX
+const baseURL = "192.168.0.2:" //home
+//const baseURL = "130.229.141.43:" // LINUX
 //const baseURL = "192.168.50.9:" // Landet: Remove :)
 //const baseURL = "192.168.0.48:" //(MAC IN EDUROAM?) 
 const port = "8080"
@@ -12,11 +12,11 @@ const port = "8080"
 export default createStore({
   state: {
     webSocket: null,
-    sessionWebSocket: null, // maybe not needed..
     connectionStatus: 'Disconnected',
     clientsCount: 0,
     mobilesCount: 0,
     sessionCameras: 0,
+    uploadedVideos: 0,
     receivedMessage: '',
     receivedSessionMessage: '',
     BASEURL: '',
@@ -25,6 +25,9 @@ export default createStore({
     toastType: 'info',
     sessionList: {},
     trialList: {},
+    // For Downloading
+    isDownloading: false,  // Indicate whether a download is in progress
+    downloadFilename: "",
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
@@ -64,7 +67,7 @@ export default createStore({
       state.sessionID=message
     },
     SET_TOASTMESSAGE(state, message){
-      console.log("changing toastMessage")
+      console.log(`changing toastMessage to ${message}`)
       state.toastMessage = message
     },
     SET_TOASTTYPE(state, type) {
@@ -79,6 +82,30 @@ export default createStore({
       console.log("Received new trials list", values)
       state.trialList = values
     },
+    /* Mobile connection stuff*/
+    SESSION_CAMERA_CONNECTED(state){
+      state.sessionCameras++;
+    },
+    RESET_SESSION_CAMERA(state) {
+      state.sessionCameras = 0
+    },
+    UPLOADED_VIDEO(state) {
+      state.uploadedVideos++;
+    },
+    RESET_UPLOADED_VIDEOS(state) {
+      state.uploadedVideos = 0
+    },
+    /* DOWNLOAD STUFF */
+    START_DOWNLOAD(state, filename) {
+      state.isDownloading = true;
+      state.downloadFilename = filename;
+    },
+  
+    RESET_DOWNLOAD(state) {
+      state.downloadFilename = "";
+      state.isDownloading = false;
+    },
+
   },
   actions: {
     connectWebSocket({ state, commit, dispatch }) {
@@ -94,7 +121,7 @@ export default createStore({
 
       ws.onmessage = (event) => {
         const message = event.data;
-        console.log('Received:', message);
+        //console.log('Received:', message);
 
         if (message.startsWith("General Web-apps connected:")) { //When a new client (web or mobile) connects without session_id (should only be web clients).
           commit('SET_CLIENTS_COUNT', parseInt(message.split(": ")[1]));
@@ -107,12 +134,59 @@ export default createStore({
           commit('SET_RECEIVED_MESSAGE', message);
           // handle message as json:
           const jsonMessage = JSON.parse(message)
-          if (jsonMessage.command=="subjects") {
+          console.log(`received command: ${jsonMessage.command}`)
+          if (jsonMessage.command=="new_session"){
+            commit('SET_SESSIONID', jsonMessage.content)
+          }
+          else if (jsonMessage.command=="subjects") {
             commit('data/SET_SUBJECTS', jsonMessage.content)
-          } else if (jsonMessage.command = "sessions"){
+          } else if (jsonMessage.command == "sessions"){
+            console.log("received message with command 'sessions' ")
             commit('SET_SESSION_LIST', jsonMessage.content)
           }
+          else if (jsonMessage.command == "mobile_connected"){
+            console.log("MOBILE CONNECTED")
+            console.log(jsonMessage.content)
+            commit('SESSION_CAMERA_CONNECTED')
+          }
+          else if (jsonMessage.command == "video_uploaded") {
+            console.log("Video Uploaded")
+            commit('UPLOADED_VIDEO')
+
+          }
+
+          else if (jsonMessage.command=="calibration"){ //Messages regarding calibration
+            const success = jsonMessage.content.match("success")
+            commit('data/SET_CALIBRATED', success )
+          }
+          else if (jsonMessage.command=="pong"){
+            console.log("Got PONG back from session websocket")
+          }
+          else if (jsonMessage.command == "visualizerJSON"){
+            console.log("Got new visualizer JSON")
+            const visualizerJson = jsonMessage.content
+            commit('data/SET_VISUALIZER_JSON', visualizerJson)
+          }
+          else if (jsonMessage.command == "sessionTrials"){
+            console.log("Going to commit to data/SET_SESSION_TRIALS")
+            commit('data/SET_SESSION_TRIALS', jsonMessage.content)
+          }
+          else if (jsonMessage.command =="Toast") {
+              const toastType = jsonMessage.type
+              const message = jsonMessage.content
+              dispatch('triggerToast', {toastType: toastType, message: message})
+          }
+          else if (jsonMessage.command === "download_start") {
+            // Example: Start download with filename
+            dispatch("startDownload", jsonMessage.filename || "session.zip");
+          }
+          else if (jsonMessage.command == "download_link") {
+            const downloadUrl = jsonMessage.link;
+            dispatch('downloadLink', downloadUrl)
+            
         }
+    }
+        
       };
 
       ws.onclose = () => {
@@ -127,83 +201,19 @@ export default createStore({
 
       commit('SET_WEBSOCKET', ws);
     },
-    connectSessionWebSocket({ state, commit, dispatch }){
-      console.log('connecting to session WS: ', state.sessionID)
-      const sessionWS = new WebSocket(`ws://${state.BASEURL}/ws/${state.sessionID}/session?client_type=web`);
-
-      sessionWS.onopen = () =>{
-        console.log("ran session WS onopen()")
-      };
-
-      sessionWS.onClose = () => {
-        console.log(`Closing session with id: ${state.SESSIONID}`)
-        
-        //commit('SET_SESSIONID', null)
-      };
-      // TODO: rewrite this to work on JSON :)
-      sessionWS.onmessage = (event) => {
-        const message = event.data
-        console.log(`Message received in sessionWS: ${message}`)
-        console.log(state.sessionID)
-        if (message.startsWith(`Session ${state.sessionID} `)){
-          console.log(`message received from server: ${message}`)
-        // Do stuff related to session
-        // Like maybe change if a trial is processing etc.
-          if (message.startsWith(`Session ${state.sessionID} mobiles connected:`)){
-            commit('SET_SESSION_CAMERAS', parseInt(message.split(": ")[1]))
-          } 
-        } else if (message.startsWith("Toast")){
-          console.log("message starts with Toast")
-          // Send from server via session specific websocket with some info regarding the session.
-          dispatch('triggerToast', message)
-        } else { // Assume it's a JSON.
-              const jsonMessage = JSON.parse(message)
-
-              if (jsonMessage.command=="calibration"){ //Messages regarding calibration
-                const success = jsonMessage.content.match("success")
-                commit('data/SET_CALIBRATED', success )
-              }
-              else if (jsonMessage.command=="pong"){
-                console.log("Got PONG back from session websocket")
-              }
-              else if (jsonMessage.command == "visualizerJSON"){
-                console.log("Got new visualizer JSON")
-                const visualizerJson = jsonMessage.content
-                commit('data/SET_VISUALIZER_JSON', visualizerJson)
-              }
-              else if (jsonMessage.command == "sessionTrials"){
-                //console.log("Going to commit to data/SET_SESSION_TRIALS")
-                commit('data/SET_SESSION_TRIALS', jsonMessage.content)
-              }
-        }
-
-      
-        
-        commit('SET_RECEIVED_SESSION_MESSAGE', message)
-      };
-      commit('SET_SESSION_WEBSOCKET', sessionWS)
-
-    },
-    sendMessage({ state }, {message, session_id = null}) {
+    
+    
+    sendMessage({ state }, message) {
         console.log(message)
         const data = message
-        const id = session_id
-        // Send to session
-        if(id==state.sessionID){
-          console.log(state.sessionWebSocket)
-          if (state.sessionWebSocket && state.connectionStatus ==='Connected'){
-            // TODO: Add logic to reconnect to this sessionID if it's not active-
-            console.log("sending to session")
-            state.sessionWebSocket.send(data)
-          }
-        // Send to general server.
-        } else {
+
           if (state.webSocket && state.connectionStatus === 'Connected') {
           console.log("sending to general ws")
           state.webSocket.send(data);
           }
-        }
-        
+          else {
+            console.error("Tried to send message but not connected to websocket")
+          }
       },
     getBASEURL({state}) {
       return state.BASEURL
@@ -217,20 +227,33 @@ export default createStore({
       }      
     },
     disconnectSessionWebSocket({ state, commit }){
-      if(state.sessionWebSocket){
-        console.log("Closing session websocket.")
-        state.sessionWebSocket.close()
-      }
+        commit('RESET_UPLOADED_VIDEOS')
+        commit('RESET_SESSION_CAMERA')
         commit('SET_SESSIONID', null)
       
     },
-    triggerToast({ state, commit} , message){
-      const msgType = message.split(": ")[1]
-      
-      const msgPart = message.split(": ").slice(2).join(": ")
-      commit('SET_TOASTTYPE', msgType)
-      commit('SET_TOASTMESSAGE', msgPart)
+    triggerToast({ state, commit} , {toastType, message}){
+      console.log("In trigger Toast")
+      commit('SET_TOASTTYPE', toastType)
+      commit('SET_TOASTMESSAGE', message)
     },
+    startDownload({ commit }, filename) {
+      commit("START_DOWNLOAD", filename);
+    },
+    addFileChunk({ commit }, chunk) {
+      commit("ADD_FILE_CHUNK", chunk);
+    },
+    downloadLink({state, commit}, downloadUrl){
+
+      console.log(downloadUrl)
+      // Optionally, you can trigger an automatic download:
+      const a = document.createElement("a");
+      a.href = downloadUrl;
+      a.download = "";  // Optionally set a custom filename
+      a.click();
+      commit('RESET_DOWNLOAD')
+    },
+    
 
   },
   modules: {
