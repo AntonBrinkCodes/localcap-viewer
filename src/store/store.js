@@ -244,7 +244,7 @@ export default createStore({
         commit('data/SET_CALIBRATED', false)
         commit('data/SET_NEUTRALPOSE', false)
         commit('data/SET_NEW_TRIAL_ID', "")
-      
+        commit('data/SET_TEST_SESSION', false)      
     },
     triggerToast({ state, commit} , {toastType, message}){
       console.log("In trigger Toast")
