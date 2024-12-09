@@ -4,7 +4,7 @@
     leftButton="Back"
     rightButton="Calibrate"
     :step="2"
-    :rightDisabled="this.mobilesCount>=2"
+    :rightDisabled="!this.connectionStatus"
     :leftDisabled="true"
     @left="this.$router.push(`/`)"
     @right="startSession">
@@ -251,12 +251,12 @@ export default {
       if(this.sessionID || this.$store.state.sessionWebSocket){
         console.log("Removing old session")
         // remove session ID and disconnect session websockets
-        this.$store.dispatch('disconnectSessionWebSocket')
+        this.$store.dispatch('resetSession')
         
       }
     },
     async startSession(){
-      this.disconnectSession() // disconnects from any previous session.
+      this.disconnectSession() // disconnects from any previous session by resetting all states connected to sessions.
 
       // Create a session on the websocket and get the UUID for it.
       // This should also Commit UUID to state.

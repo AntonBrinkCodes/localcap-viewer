@@ -37,12 +37,28 @@
         
         </v-row>
         
-
+<!-- Trial List -->
+<input
+      type="text"
+      v-model="trialName"
+      :class="{ 'input-error': isDuplicate(trialName) }"
+      @input="validateTrialName"
+      placeholder="Enter trial name"
+    />
+    <button
+      :disabled="isDuplicate(trialName)"
+      @click="startDynamicRecording"
+    >
+      Start Recording
+    </button>
+    <span v-if="isDuplicate(trialName)" class="warning">
+      Duplicate trial name!
+    </span>
+<TrialList :trials="session.trials" @trial-click="selectTrial" />
       </v-card>
      
 
-      <!-- Trial List -->
-      <TrialList :trials="session.trials" @trial-click="selectTrial" />
+      
     </v-col>
 
     <!-- Right Column: Visualizer -->
@@ -69,27 +85,28 @@ export default{
         TrialList,
     },
     mounted() {
+        this.$store.commit('RESET_UPLOADED_VIDEOS')
         this.getTrials()
     },
     data () {
         return {
             trialName: "", // To enter new trialName
-            selectedTrial: null, // 
+            selectedTrial: null, //
+            isRecording: false,
         }
     },
     computed: {
         ...mapState({
             sessionID: state => state.sessionID,
             cameras: state => state.sessionCameras,
-            chunkSize: state => state.chunkSize,
             isDownloading: state => state.isDownloading,
-            totalChunks: state => state.totalChunks,
-            receivedChunks: state => state.receivedChunks,
+            uploadedVideos: state => state.uploadedVideos
         }),
         ...mapState('data',{
             isTest: state => state.test_session,
             session: state => state.session,
-            visualizerJson: state => state.visualizerJSON
+            visualizerJson: state => state.visualizerJSON,
+            trialId: state => state.newTrialId
         }),
         downloadInformationMessage(){
         if (this.isDownloading){
@@ -105,30 +122,61 @@ export default{
             "sessions changed"
             console.log(newTrials)
         },
+        uploadedVideos(newAmount){
+          if (newAmount == this.cameras){
+            // Send to process the trial
+            this.processNewTrial()
+            this.$store.commit('RESET_UPLOADED_VIDEOS')
+          }
+        }
     },
     methods: {
-        ...mapActions(['sendMessage', 'getBASEURL']),
-        startDynamic() {
+        ...mapActions(['sendMessage', 'getBASEURL', 'RESET_']),
+        startDynamicRecording() {
+          this.$store.commit('RESET_UPLOADED_VIDEOS') // reset number of uploaded videos.. just in case.
+          this.isRecording = true
           // TODO: FIX THIS TO DO RECORD -> UPLOAD -> WAIT FOR BACKEND TO SAY ALL VIDEOS ARE UPLOADED -> PROCESS TRIAL.
             const startDynamicMsg = {
-                command: "start_dynamic",
+                command: "start_recording",
+                trialType: "dynamic",
                 trialName: this.trialName,
                 isTest: this.isTest,
                 session: this.sessionID,
-                trialID: this.selectedTrial.uuid
             }
             console.log('message is: ', startDynamicMsg)
             this.sendMessage(
                 JSON.stringify(startDynamicMsg)
             )
         },
-        processDynamicTrial(trial){
+        stopDynamic(){
+          const stopDynamicMsg = {
+            command: "stop_recording",
+            trialType: "dynamic",
+            trialName: this.trialName,
+            session: this.sessionID,
+          }
+          this.isRecording = false
+          this.sendMessage(JSON.stringify(stopDynamicMsg))
+        },
+        processNewTrial() {
           const startDynamicMsg = {
-            command: "start_dynamic",
+            command: "process_trial",
+            trialType: "dynamic",
+            trialName: this.trialName,
+            isTest: this.isTest,
+            session: this.sessionID,
+            trialId: this.trialID
+          }
+        },
+        reProcessTrial(trial){
+          const startDynamicMsg = {
+            command: "process_trial",
+            trialType: "dynamic",
+
             trialName: trial.trialName,
             isTest: this.isTest,
             session: this.sessionID,
-            trialID: trial.uuid,
+            trialId: trial.uuid,
           }
           console.log('message is', startDynamicMsg)
           this.sendMessage(JSON.stringify(startDynamicMsg))
@@ -155,8 +203,8 @@ export default{
           }
           else {
             // TODO: Check if all videos exist.
-            // Process dynamic trial
-            this.processDynamicTrial(trial)
+            // Process dynamic (or reprocess) trial
+            this.reProcessTrial(trial)
           }
         },
         getVisualizerJson(trial) {
@@ -190,6 +238,18 @@ export default{
             session: this.sessionID,
           }
           this.sendMessage(JSON.stringify(downloadMsg))
+    },
+    isDuplicate(name) {
+      // Check if the trial name exists in the session's trials list
+      return (
+        name &&
+        this.session.trials.some((trial) => trial.trialName === name)
+      );
+    },
+    validateTrialName() {
+      if (this.isDuplicate(this.trialName)) {
+        console.warn(`Duplicate trial name: ${this.trialName}`);
+      }
     },
       
     },

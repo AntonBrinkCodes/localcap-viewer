@@ -171,9 +171,18 @@ export default {
     },
     uploadedVideos(newValue){
       if (newValue == this.cameras){
-        this.$store.dispatch('RESET_UPLOADED_VIDEOS')
+        this.$store.commit('RESET_UPLOADED_VIDEOS')
         console.log("READY TO CALIBRATE :)")
         this.triggerToast({toastType: "Info", message: "All videos uploaded"})
+        const processCalibrationMsg = {
+          command: "process_trial",
+          trialType: "calibration",
+          trialId: "calibration",
+          trialName: "calibration",
+          session: this.sessionID,
+          isTest: this.testSession
+        }
+        this.sendMessage(JSON.stringify(processCalibrationMsg))
       }
     }
   },
@@ -184,6 +193,7 @@ export default {
   mounted() {
     console.log(`SessionID is: ${this.sessionID}`);
     console.log(`Number of cameras is: ${this.cameras}`);
+    //this.$store.commit('data/SET_CALIBRATED', false)
   },
   methods: {
     ...mapActions(['sendMessage', 'getBASEURL', 'triggerToast']),
@@ -193,8 +203,25 @@ export default {
     onNext() {
       console.log('onNext pressed');
       console.log(this.placement);
-      if (!this.calibrated){
-        // run calibration. the back end handles stopping after 1 second for calibration and such.
+      const isDebug = (this.cameras == 0 && this.testSession && !this.calibrated)
+      console.log(`is this debug: ${this.cameras == 0}, ${this.testSession}, ${!this.calibrated} total: ${(this.cameras == 0 && this.isTest && !this.calibrated)}`)
+      if (this.cameras == 0 && this.testSession && !this.calibrated){ // for debugging when no phones are connected
+        const calibMessage = {
+          session: this.sessionID,
+          command: "process_trial",
+          trialType: "calibration",
+          trialName: "calibration",
+          trialId: "calibration",
+          rows: this.rows,
+          cols: this.cols,
+          squareSize: this.squareSize,
+          placement: this.placement,
+          isTest: true,
+        }
+          this.sendMessage(JSON.stringify(calibMessage))
+      }
+      else if (!this.calibrated){
+        // Send message to start recording the calibration videos.
         const calibMessage = {
           session: this.sessionID,
           command: 'start_recording',
@@ -211,11 +238,12 @@ export default {
         this.sendMessage(JSON.stringify(calibMessage)
     
         );
-      }
-      // Move to the next route after calibration
+      } // Move to the next route after calibration
       else if (this.calibrated) {
         this.$router.push(`/${this.sessionID}/neutral`);
       }
+      
+      
     },
   },
 };

@@ -11,6 +11,7 @@ export default {
             trials: []
         },
         calibrated: false,
+        neutralPose: false, // whetever the neutral pose is recorded.
 
         trial : {
             uuid: '',
@@ -35,6 +36,7 @@ export default {
         // For dynamic recordings:
         trialName: '',
         visualiserJSON: null,
+        newTrialId: '',
 
         // For subjects
         subjects: [],
@@ -89,6 +91,9 @@ export default {
         SET_CALIBRATED(state, calibrated){
             state.calibrated = calibrated
         },
+        SET_NEUTRALPOSE(state, value){
+            state.neutralPose = value
+        },
         SET_TEST_SESSION(state, value){
             state.test_session = value
         },
@@ -105,6 +110,10 @@ export default {
           }));
           // commit it to state
             state.session.trials = trials
+        },
+        SET_NEW_TRIAL_ID(state, newTrialId){
+            state.newTrialId = newTrialId
         }
+
     }
 }

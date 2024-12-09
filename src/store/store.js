@@ -93,6 +93,7 @@ export default createStore({
       state.uploadedVideos++;
     },
     RESET_UPLOADED_VIDEOS(state) {
+      console.log("setting uploaded videos to 0")
       state.uploadedVideos = 0
     },
     /* DOWNLOAD STUFF */
@@ -154,10 +155,20 @@ export default createStore({
             commit('UPLOADED_VIDEO')
 
           }
+          else if (jsonMessage.command == "new_dynamic_trialId") {
+            commit('data/SET_NEW_TRIAL_ID', jsonMessage.content) // WHen recording a new dynamic trial, get the new trial ID.
+          }
 
-          else if (jsonMessage.command=="calibration"){ //Messages regarding calibration
-            const success = jsonMessage.content.match("success")
-            commit('data/SET_CALIBRATED', success )
+          else if (jsonMessage.command=="process_succeded"){ //Messages regarding calibration
+            const type = jsonMessage.trialType
+            console.log(`succesfully processed trial of type: ${type}`)
+            if (type == "calibration") {
+              commit('data/SET_CALIBRATED', true )
+            } else if (type == "neutral") {
+              console.log("commiting to neutralPose:")
+              commit('data/SET_NEUTRALPOSE', true)
+            } // add dynamic here too?
+            
           }
           else if (jsonMessage.command=="pong"){
             console.log("Got PONG back from session websocket")
@@ -226,10 +237,13 @@ export default createStore({
         await state.webSocket.send(message)
       }      
     },
-    disconnectSessionWebSocket({ state, commit }){
+    resetSession({ state, commit }){
         commit('RESET_UPLOADED_VIDEOS')
         commit('RESET_SESSION_CAMERA')
         commit('SET_SESSIONID', null)
+        commit('data/SET_CALIBRATED', false)
+        commit('data/SET_NEUTRALPOSE', false)
+        commit('data/SET_NEW_TRIAL_ID', "")
       
     },
     triggerToast({ state, commit} , {toastType, message}){

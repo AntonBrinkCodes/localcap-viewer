@@ -1,6 +1,10 @@
 <template>
-  <MainLayout leftButton="Back" rightButton="Record Neutral" :step="4" :rightDisabled="this.subject === null "
-    @left="this.$router.push(`/${this.sessionID}/calibration`)" @right="onNext">
+  <MainLayout leftButton="Back" 
+  :rightButton="rightButtonText" 
+  :step="4" 
+  :rightDisabled="this.subject === null "
+  @left="this.$router.push(`/${this.sessionID}/calibration`)" 
+  @right="onNext">
 
     <div class="step-4-1 d-flex flex-column">
 
@@ -231,6 +235,7 @@ export default {
     ...mapState('data', {
       subjects: state => state.subjects,
       isTest: state => state.test_session,
+      neutralPose: state => state.neutralPose
     }),
     subject_search: {
       get() {
@@ -252,6 +257,9 @@ export default {
         this.setTestSession(value);
       },
     },
+    rightButtonText() {
+      return this.neutralPose ? 'Continue' : 'Calibrate';
+    },
   },
   watch: {
     subjects(newSubjectList) {
@@ -270,9 +278,12 @@ export default {
         const processTrialMsg = {
           command: "process_trial",
           trialType: "neutral",
+          trialname: "neutral",
+          trialId: "neutral",
           subject: this.subject,
           isTest: this.isTest,
           session: this.sessionID
+
         }
         this.sendMessage(JSON.stringify(processTrialMsg))
       }
@@ -284,22 +295,45 @@ export default {
       setTestSession: 'SET_TEST_SESSION',
     }),
     onNext() {
+      //TODO: Add so that if neutralPose is true then this just routes to dynamic.
       console.log('onNext pressed');
       //this.loadSubjectsList(false);
       console.log('is this a test run? :', this.isTest)
       console.log(this.sessionID)
-      // TODO: Change this so that it just asks to start recording.
+      
+      this.$store.commit('RESET_UPLOADED_VIDEOS')
+      const isDebug = (this.cameras == 0 && this.testSession && !this.neutralPose)
+      console.log(`is this debug: ${this.cameras == 0}, ${this.testSession}, ${!this.calibrated} total: ${(this.cameras == 0 && this.isTest && !this.neutralPose)}`)
+      if (this.cameras === 0 && this.isTest && !this.neutralPose) {
+        // debug trial
+        const processneutralMsg = {
+          command: "process_trial",
+          trialType: "neutral",
+          trialId: "neutral", 
+          subject: this.subject,
+          isTest: true,
+          session: this.sessionID,
+        }
+        this.sendMessage(JSON.stringify(processneutralMsg))
+    }
+      else if (!this.neutralPose) {
       const startNeutralMsg = {
-        command: "start_neutral",
+        command: "start_recording",
+        trialType: "neutral",
+        trialId: "neutral",
+        trialname: "neutral", 
         subject: this.subject,
         isTest: this.isTest,
         session: this.sessionID,
       }
       this.sendMessage(
         JSON.stringify(startNeutralMsg),
-      );
-
-
+      );}
+      else { // Move to next 
+      this.$router.push(`/${this.sessionID}/dynamic`)
+    }
+    
+    
     },
     async loadSubjectsList(append_result = false) {
       console.log('loading subjects:', this.subject_search, ' - ', append_result);
