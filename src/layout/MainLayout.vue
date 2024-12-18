@@ -9,7 +9,7 @@
         <slot/>
       </div>
   
-      <div class="navigation d-flex justify-space-between align-center mt-5 w-100">
+      <div class="navigation d-flex justify-space-between align-center w-100">
         <div class="slot">
           <v-btn
             v-if="leftButton"
@@ -109,11 +109,13 @@
   
   <style lang="scss" scoped>
   .main-layout {
-    min-height: calc(100vh - 64px); 
+    min-height: calc(100vh - 0px); 
+    overflow-y: auto;
   
     &.fixed-height {
       height: calc(100vh - 64px);
       max-height: calc(100vh - 64px);
+      overflow-y:auto;
     }
   
     .content-wrapper {

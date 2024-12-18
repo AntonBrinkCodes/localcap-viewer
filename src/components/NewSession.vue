@@ -10,27 +10,27 @@
     @right="startCalibration">
     
   
-    <v-card class="flex-grow-1 d-flex flex-column justify-center">
-      <v-card-text class="d-flex flex-column align-center">
+    <v-card class="flex-grow-1 d-flex flex-column justify-center overflow-auto">
+  <v-card-text class="d-flex flex-row align-center flex-wrap justify-space-between">
+    <!-- Left column for text -->
+    <div class="text-column d-flex flex-column flex-grow-1 mx-4">
+      <h2 class="step-instruction">1. Open the OpenCap app on your phone</h2>
+      <h2 class="step-instruction">2. Scan the QR code</h2>
+      <h2 class="step-instruction">3. Mount your phone vertically or horizontally (unlock portrait orientation) on a tripod</h2>
+      <h2 class="step-instruction">4. Position the tripod and camera to capture the volume of interest</h2>
+      <h2 class="step-instruction">5. Repeat 1-4 for all phones you want to connect</h2>
+      <h2 class="step-instruction">6. Have the person practice the activity and verify that they are fully in view of at least 2 cameras</h2>
+    </div>
 
-        <div class="d-flex step-1 align-center flex-wrap">
-          <div class="d-flex flex-column flex-grow-1 justify-space-between my-1 text-align-left">
-            <h2 class="my-4">1. Open the OpenCap app on your phone</h2>
-            <h2 class="my-4">2. Scan the QR code</h2>
-            <h2 class="my-4">3. Mount your phone vertically or horizontally (unlock portrait orientation) on a tripod</h2>
-            <h2 class="my-4">4. Position the tripod and camera to capture the volume of interest</h2>
-            <h2 class="my-4">5. Repeat 1-4 for all phones you want to connect</h2>
-            <h2 class="my-4">6. Have the person practice the activity and verify that they are fully in view of at least 2 cameras</h2>
-          </div>
+    <!-- Right column for QR code -->
+    <div class="qr-container d-flex align-center justify-center mx-4">
+      <QRCodeVue3 :value="qrURL" class="qr-code" />
+    </div>
+  </v-card-text>
+</v-card>
 
-          <div class="image-container qr-container d-flex align-center justify-center my-1">
-              <QRCodeVue3 :value="qrURL" />
-          </div>
-        </div>
-      </v-card-text>
       
       
-    </v-card>
      <!-- Button at the Bottom -->
      <div v-if="mobilesCount >= 0" class="button-container d-flex justify-center mb-4">
         <v-btn @click="startCalibration" >
@@ -58,7 +58,7 @@ import { mapMutations } from 'vuex/dist/vuex.cjs.js';
       ...mapState({
         connectionStatus: 'connectionStatus',
         clientsCount: 'clientsCount',
-        mobilesCount: 'mobilesCount',
+        mobilesCount: 'sessionCameras',
         receivedMessage: 'receivedMessage',
         BASEURL: (state) => state.BASEURL,
         sessionID: (state) => state.sessionID,
@@ -91,6 +91,46 @@ import { mapMutations } from 'vuex/dist/vuex.cjs.js';
   
 
 <style lang="scss">
+
+.flex-grow-1 {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  overflow: auto;
+}
+
+.v-card-text {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}
+
+.text-column {
+  flex-grow: 1;
+  max-width: 60%; /* Adjust for preferred width of text column */
+  margin: 1rem;
+}
+
+.step-instruction {
+  margin: 1rem 0;
+  font-size: 1.2rem; /* Adjust font size as needed */
+}
+
+.qr-container {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  max-width: 30%; /* Adjust for preferred QR code size */
+  margin: 1rem;
+}
+
+.qr-code {
+  max-width: 100%;
+  height: auto;
+}
 .step-4-1 {
   flex: 0 0 80%;
   li {

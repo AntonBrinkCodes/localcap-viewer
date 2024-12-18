@@ -9,59 +9,58 @@
     @left="this.$router.push(`/`)"
     @right="startSession">
 
-  <div>
-    <v-card class="fill-width d-flex flex-column justify-space-between">
-      <v-card-text class="d-flex flex-column align-center flex-grow-1">
-        <v-row class="d-flex align-center flex-wrap fill-height w-100">
-          <v-col cols="12" md="6" class="d-flex flex-column justify-space-between my-1">
-            <div>
-              <h1 class="my-1"> Websocket Client  </h1>
-              <h1 class="my-1"> {{ connectionStatus }}</h1>
-              <h1 class="my-1">Web-apps connected: {{ clientsCount }}</h1>
-              <h1 class="my-1">Mobiles connected: {{ mobilesCount }}</h1>
-            </div>
-    
-          </v-col>
-          <!-- Start new Session button-->
-      <v-btn @click="startSession">
-        New Session
-      </v-btn>
-      <v-btn @click="this.$router.push('/visualizer')"> Visualizer</v-btn> <!-- Test-->
-        </v-row>
-      </v-card-text>
-    </v-card>
-  </div>
+  
 
-  <div>
-    <h1>Session List</h1>
-    <v-text-field
-      v-model="search"
-      label="Search"
-      placeholder="Search by Subject Name or Session ID"
-      class="mb-2"
-    />
-    <v-data-table
-      :headers="headers"
-      :items="filteredSessions"
-      :items-per-page="5"
-      class="elevation-1"
-      single-select
-      @click:row="onRowClick"
+    <div class="overflow-auto">
+      <!-- Row with session list and new session button -->
+      <div class="d-flex align-center justify-space-between mb-4">
+        <h2 class="session-list-title">Session List</h2>
+        <!-- Tooltip wrapping the New Session button -->
+        <!-- Tooltip for the New Session button -->
+        <v-tooltip location="bottom" >
+  <template #activator="{ props }">
+    <v-btn
+      v-bind="props"
+      @click="startSession"
+      :disabled="connectionStatus !== 'Connected'"
     >
-      <!-- Add other slots if needed for custom item rendering -->
-       <!-- Slot for remove item.-->
-      <template v-slot:[`item.action`]="{ item }">
-    <!-- Add the button here -->
-    <v-btn icon="mdi-delete" @click.stop="showDeleteDialog(item.sessionID)"> <!-- click.stop supposedly stops the row onclick from also triggering-->
+      New Session
     </v-btn>
   </template>
-    </v-data-table>
-  </div>
+  WebSocket Status: {{ this.connectionStatus }}
+</v-tooltip>
+      </div>
 
-  <!-- Confirmation Dialog for Deleting -->
-  <v-dialog v-model="deleteDialog" max-width="500px">
+      <!-- Search Field -->
+      <v-text-field
+        v-model="search"
+        label="Search"
+        placeholder="Search by Subject Name or Session ID"
+        class="mb-4"
+      />
+
+      <!-- Data Table -->
+      <v-data-table
+        :headers="headers"
+        :items="filteredSessions"
+        :items-per-page="5"
+        class="elevation-1 fixed-height-table"
+        single-select
+        @click:row="onRowClick"
+      >
+        <template v-slot:[`item.action`]="{ item }">
+          <v-btn icon="mdi-delete" @click.stop="showDeleteDialog(item.sessionID)">
+          </v-btn>
+        </template>
+      </v-data-table>
+    </div>
+
+    <!-- Confirmation Dialog for Deleting -->
+    <v-dialog v-model="deleteDialog" max-width="500px">
       <v-card>
-        <v-card-title class="headline">Are you sure you want to delete this session?</v-card-title>
+        <v-card-title class="headline">
+          Are you sure you want to delete this session?
+        </v-card-title>
         <v-card-actions>
           <v-btn color="green darken-1" text @click="cancelDelete">
             Cancel
@@ -72,9 +71,9 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
-</MainLayout>
-
+  </MainLayout>
 </template>
+
 
 <script>
 import { ref } from 'vue'
@@ -292,7 +291,34 @@ export default {
 </script>
 
 <style scoped>
-.read-the-docs {
-  color: #888;
+/* Aligns the Session List heading and New Session button in a single row */
+.d-flex-hello {
+  display: flex;
+}
+
+.align-center-hello {
+  align-items: center;
+}
+
+.justify-space-between-hello {
+  justify-content: space-between;
+}
+
+.mb-4-hello {
+  margin-bottom: 1rem;
+}
+
+.session-list-title {
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+/* Ensures consistent height for the data table */
+.fixed-height-table {
+  min-height: calc(5 * 48px + 56px); /* 5 rows of 48px each + table header height */
+  /*max-height: calc(5 * 48px + 56px); /* Same calculation for max height */
+  overflow: hidden; /* Prevent scrolling within the table */
 }
 </style>
+

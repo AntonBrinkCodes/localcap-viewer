@@ -1,5 +1,5 @@
 <template>
-    <v-dialog v-model="edit_dialog" width="500" @click:outside="closeDialog">
+    <v-dialog class = "overflow-auto" v-model="edit_dialog" width="500" @click:outside="closeDialog">
       <form @submit.prevent="submitSubjectForm" class="d-flex flex-column">
         <v-card>
           <v-card-title class="headline" v-if="edited_subject.id">Edit subject "{{ edited_subject.name }}"</v-card-title>
@@ -117,11 +117,12 @@
                              v-bind="props"
                              @click.stop>Privacy Policy</a>
                         </template>
+                        Opens in new window
                       </v-tooltip>
                       of the OpenCap tool.
                     </div>
                   </template>
-                  Opens in new window
+                  
                 </v-checkbox>
               </Field>
             </div>

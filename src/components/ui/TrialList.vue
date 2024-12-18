@@ -1,6 +1,6 @@
 <template>
   <div>
-    <h1>Session Trials</h1>
+    <h2>Trials</h2>
     <ul>
       <li 
         v-for="trial in trials" 
@@ -9,15 +9,35 @@
         :class="{ selected: trial === selectedTrial }"
         @click="onTrialClick(trial)"
       >
-        <span class="trial-name">{{ trial.trialName }}</span>
-        <span 
-          class="status-indicator"
-          :class="{ 'processed': trial.processed, 'unprocessed': !trial.processed }"
-        ></span>
+        <!-- Trial Details -->
+        <div class="trial-details" >
+          <span class="trial-name align-center">{{ trial.trialName }}</span>
+          <span 
+            class="status-indicator align-center"
+            :class="{ 
+              'processed': trial.processed === 'True', 
+              'error': trial.processed === 'Error', 
+              'unprocessed': trial.processed !== 'True' && trial.processed !== 'Error' 
+            }"
+          ></span>
+        </div>
+
+        <!-- Loader Container -->
+        <div class="loader-container">
+          <v-progress-linear 
+            v-if="trial.processed === 'processing' || trial.processed === 'queued'" 
+            :color="trial.processed === 'processing' ? 'green' : 'yellow'"
+            height="4"
+            indeterminate
+            class="status-loader"
+          ></v-progress-linear>
+        </div>
       </li>
     </ul>
   </div>
 </template>
+
+
 
 <script>
 export default {
@@ -44,23 +64,29 @@ export default {
 </script>
 
 <style scoped>
+/* General Styles */
 ul {
   list-style-type: none;
   padding: 0;
+  overflow: auto;
 }
 
 .trial-item {
   display: flex;
-  align-items: center;
+  flex-direction: column; /* Stack content horizontally */
+  justify-content: space-between; /* Push items to top and bottom */
+  align-items: flex-start; /* Center content horizontally */
   margin-bottom: 10px;
   cursor: pointer;
   padding: 5px;
   border: 1px solid transparent; /* Default border */
   transition: all 0.3s;
+  min-height: 60px; /* Ensure consistent height with/without loader */
+  position: relative; /* Allows positioning the loader at the bottom */
 }
 
 .trial-item:hover {
-  background-color: #f0f0f0;
+  background-color: #b1aeae;
 }
 
 .trial-item.selected {
@@ -68,7 +94,17 @@ ul {
   background-color: #525252; /* Highlight background for selected trial */
 }
 
+/* Trial Details Section (Center Content) */
+.trial-details {
+  display: flex;
+  flex-direction: row; /* Stack name and indicator vertically */
+  justify-content: space-between; /* */
+  align-items: center; /* Horizontally center the content */
+  width: 100%; /* Allow the details section to take up available space */
+}
+
 .trial-name {
+  font-weight: bold;
   flex: 1;
 }
 
@@ -76,6 +112,7 @@ ul {
   width: 16px;
   height: 16px;
   border-radius: 50%;
+  margin-top: 5px; /* Space between name and indicator */
 }
 
 .status-indicator.processed {
@@ -85,4 +122,21 @@ ul {
 .status-indicator.unprocessed {
   background-color: yellow;
 }
+
+.status-indicator.error {
+  background-color: red;
+}
+
+/* Loader Styles */
+.loader-container {
+  width: 100%; 
+  height: 10px; /* Fixed space for the loader */
+  margin-top: 10px;
+}
+
+.status-loader {
+  animation-duration: 4s !important; /* Slow down loader animation */
+}
 </style>
+
+
