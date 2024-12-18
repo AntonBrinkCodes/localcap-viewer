@@ -16,7 +16,7 @@ export default {
         trial : {
             uuid: '',
             trialName: '',
-            processed: false
+            processed: ''
         },
         // For neutral session recording:
         // step 4
@@ -35,7 +35,6 @@ export default {
 
         // For dynamic recordings:
         trialName: '',
-        visualiserJSON: null,
         newTrialId: '',
 
         // For subjects
@@ -55,15 +54,16 @@ export default {
             // "": "",
             "woman": "Woman",
             "man": "Man",
-            "transgender": "Transgender",
             "non-binary": "Non-Binary/Non-Conforming",
             "prefer-not-respond": "Prefer not to respond",
           },
         
         test_session: false,
 
-        visualizerJSON: null
+        visualizerJSON: null,
+        visualizerVideos: [],
 
+        
 
     },
     actions: {
@@ -112,7 +112,11 @@ export default {
             state.session.trials = trials
         },
         SET_NEW_TRIAL_ID(state, newTrialId){
+            console.log("setting newTrialID")
             state.newTrialId = newTrialId
+        },
+        SET_VISUALIZER_VIDEOS(state, videos){
+            state.visualizerVideos = videos
         }
 
     }

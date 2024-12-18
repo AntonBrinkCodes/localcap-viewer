@@ -3,8 +3,8 @@ import { createStore } from 'vuex';
 import data from '@/store/data'
 
 // Replace baseURL with where fastAPI backend is hosted. Perhaps should not be state but in env thing
-const baseURL = "192.168.0.2:" //home
-//const baseURL = "130.229.141.43:" // LINUX
+//const baseURL = "192.168.0.2:" //home
+const baseURL = "130.229.135.163:" // LINUX
 //const baseURL = "192.168.50.9:" // Landet: Remove :)
 //const baseURL = "192.168.0.48:" //(MAC IN EDUROAM?) 
 const port = "8080"
@@ -193,8 +193,33 @@ export default createStore({
           }
           else if (jsonMessage.command == "download_link") {
             const downloadUrl = jsonMessage.link;
-            dispatch('downloadLink', downloadUrl)
-            
+            dispatch('downloadLink', downloadUrl)   
+        } else if (jsonMessage.command === "visualizer_videos") {
+          // Map the received videos to include a decoded video URL
+          const videos = jsonMessage.content.map((video) => {
+            const byteString = atob(video.data);
+            const ab = new ArrayBuffer(byteString.length);
+            const ia = new Uint8Array(ab);
+          
+            for (let i = 0; i < byteString.length; i++) {
+              ia[i] = byteString.charCodeAt(i);
+            }
+          
+            const blob = new Blob([ab], { type: 'video/mp4' });
+            const blobUrl = URL.createObjectURL(blob);
+          
+            return {
+              ...video,
+              src: blobUrl, // Use Blob URL instead of a Data URL
+            };
+          });
+          
+          commit('data/SET_VISUALIZER_VIDEOS', videos);
+          //const videos = jsonMessage.content.map((video) => ({
+          //  ...video,
+          //  src: `data:video/mp4;base64,${video.data}` // Create a data URL for the video
+          //}));
+          //commit('data/SET_VISUALIZER_VIDEOS', videos)
         }
     }
         

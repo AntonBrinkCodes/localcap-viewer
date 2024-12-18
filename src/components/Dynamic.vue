@@ -1,71 +1,68 @@
 <template>
-<v-row>
+<v-row :style="{ backgroundColor: '#000000' }">
     <!-- Left Column: Buttons and TrialList -->
-    <v-col cols="4" class="d-flex flex-column justify-start">
-      <v-card class="mb-4">
-        <v-card-title class="justify-center subject-title">
-          Dynamic trials (WIP)
-        </v-card-title>
-
-        <v-card-text>
-          <v-btn @click="startDynamic">
-            Run dynamic Trial
-            <v-tooltip activator="parent" location="bottom">
-              Run test dynamic trial on backend.
-            </v-tooltip>
-          </v-btn>
-        </v-card-text>
-
-        <v-btn @click="this.$router.push(`/`)">Back to home</v-btn>
-
-        <v-card-text>
-          <v-btn @click="this.getVisualizerJson">Load visualizer Json</v-btn>
-        </v-card-text>
-
-        <v-card-text>
-          <v-btn @click="this.stopVisualizer">Stop Visualizer</v-btn>
-        </v-card-text>
-
-        <v-btn @click="this.getTrials">Ask for trials</v-btn>
-
-        <v-row>
-          <v-card-text>
-          <v-btn @click="this.downloadSession">Download Session</v-btn>
-          <p> {{ this.downloadInformationMessage }} </p>
-        </v-card-text>
-
-        
-        </v-row>
-        
-<!-- Trial List -->
+    <v-col cols="2" class="d-flex flex-column justify-start " style="height: 100vh; overflow-y: auto;">
+        <!-- Trial List -->
 <input
       type="text"
       v-model="trialName"
       :class="{ 'input-error': isDuplicate(trialName) }"
       @input="validateTrialName"
       placeholder="Enter trial name"
+      class="trial-name-input"
+      :disabled="isRecording || isUploading" 
+
     />
-    <button
-      :disabled="isDuplicate(trialName)"
-      @click="startDynamicRecording"
-    >
-      Start Recording
-    </button>
+    <v-btn variant ="outlined" @click="handleDynamicRecording">
+      {{ isRecording ? `Stop (${formattedTime})` : 'Start Recording' }}
+    </v-btn>
     <span v-if="isDuplicate(trialName)" class="warning">
       Duplicate trial name!
     </span>
-<TrialList :trials="session.trials" @trial-click="selectTrial" />
-      </v-card>
+
+    <TrialList :trials="session.trials" @trial-click="selectTrial" class="trial-list"/>
+        
+     
+    <v-expansion-panels class = "mt-auto" style="background-color: #000000;">
+      <v-expansion-panel :class="'black-panel'">
+            <v-expansion-panel-title class="black-panel-header">
+              Options
+            </v-expansion-panel-title>
+        <v-expansion-panel-text>
+          <v-btn variant ="outlined" @click="this.$router.push(`/`)" >Home</v-btn>
+          <v-btn variant ="outlined" @click="this.downloadSession">Download</v-btn>
+          <v-btn variant ="outlined" @click="this.getTrials">Refresh Trials</v-btn>
+        </v-expansion-panel-text>
+      </v-expansion-panel>
+    </v-expansion-panels>
+    
+
+    <!--<v-expansion-panels class = "mt-auto position-absolute-bottom-0">
+      <v-expansion-panel>
+  <v-expansion-panel-text>
+    <v-btn @click="this.$router.push(`/`)">Back to home</v-btn>
+    <v-btn @click="this.getTrials">Ask for trials</v-btn>
+    <v-row>
+      <v-card-text>
+        <v-btn @click="this.downloadSession">Download Session</v-btn>
+        <p>{{ downloadInformationMessage }}</p>
+      </v-card-text>
+    </v-row>
+  </v-expansion-panel-text>
+</v-expansion-panel>
+</v-expansion-panels>    -->
+      <!-- Expandable Panel for Last Buttons -->
      
 
       
     </v-col>
 
     <!-- Right Column: Visualizer -->
-    <v-col cols="8" class="visualizer-container">
+    <v-col cols="10" class="visualizer-container" :style="{ backgroundColor: '#000000' }">
       <v-card class="d-flex justify-center align-center visualizer-card">
         <!-- Visualizer Component -->
-        <Visualizer :animation-json="visualizerJson" />
+        <Visualizer :animation-json="visualizerJson"
+        :videos = visualizerVideos />
       </v-card>
     </v-col>
   </v-row>
@@ -76,8 +73,9 @@
 import {mapState, mapActions} from 'vuex'
 import Visualizer from '../Visualizer.vue';
 import TrialList from '../components/ui/TrialList.vue';
+import { TiltLoader } from 'three/examples/jsm/Addons.js';
 
-import animationData from '../assets/dynamic_2.json'
+//import animationData from '../assets/dynamic_2.json'
 export default{
     name: 'Dynamic',
     components: {
@@ -93,6 +91,10 @@ export default{
             trialName: "", // To enter new trialName
             selectedTrial: null, //
             isRecording: false,
+            isUploading: false,
+            recordingStartTime: null,
+            elapsedTime: 0,
+            timerInterval: null,
         }
     },
     computed: {
@@ -106,7 +108,8 @@ export default{
             isTest: state => state.test_session,
             session: state => state.session,
             visualizerJson: state => state.visualizerJSON,
-            trialId: state => state.newTrialId
+            trialId: state => state.newTrialId,
+            visualizerVideos: state => state.visualizerVideos
         }),
         downloadInformationMessage(){
         if (this.isDownloading){
@@ -115,7 +118,13 @@ export default{
         else {
           return ""
         }
-      }
+      },
+      formattedTime() {
+        const centiseconds = Math.floor(this.elapsedTime / 10) % 100; // Get centiseconds (ms / 10)
+        const seconds = Math.floor(this.elapsedTime / 1000) % 60; // Get total seconds, modulo 60
+        const minutes = Math.floor(this.elapsedTime / 60000); // Get total minutes
+        return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}:${centiseconds < 10 ? '0' : ''}${centiseconds}`;
+      },
     },
     watch: {
         session(newTrials) {
@@ -125,17 +134,37 @@ export default{
         uploadedVideos(newAmount){
           if (newAmount == this.cameras){
             // Send to process the trial
+            this.isUploading = false
             this.processNewTrial()
             this.$store.commit('RESET_UPLOADED_VIDEOS')
           }
+        },
+        trialId(newValue){
+          console.log(`New trial ID is: ${newValue}`)
         }
     },
     methods: {
         ...mapActions(['sendMessage', 'getBASEURL', 'RESET_']),
+        handleDynamicRecording(){
+          if (this.isRecording){
+            clearInterval(this.timerInterval); // Stop the timer
+            this.stopDynamic()
+            this.elapsedTime = 0; // Reset elapsed time
+          } else {
+            this.recordingStartTime = Date.now(); // Adjust the start time if previously paused
+            this.startTimer()
+            this.startDynamicRecording()
+          }
+        },
+        startTimer() {
+        this.timerInterval = setInterval(() => {
+        this.elapsedTime = Date.now() - this.recordingStartTime; // Update elapsed time every second
+      }, 100);
+    },
         startDynamicRecording() {
           this.$store.commit('RESET_UPLOADED_VIDEOS') // reset number of uploaded videos.. just in case.
           this.isRecording = true
-          // TODO: FIX THIS TO DO RECORD -> UPLOAD -> WAIT FOR BACKEND TO SAY ALL VIDEOS ARE UPLOADED -> PROCESS TRIAL.
+          console.log("Starting recording")
             const startDynamicMsg = {
                 command: "start_recording",
                 trialType: "dynamic",
@@ -153,20 +182,24 @@ export default{
             command: "stop_recording",
             trialType: "dynamic",
             trialName: this.trialName,
+            trialId: this.trialId,
             session: this.sessionID,
           }
           this.isRecording = false
+          this.isUploading = true
           this.sendMessage(JSON.stringify(stopDynamicMsg))
         },
         processNewTrial() {
+          console.log(`Sending to process trial ${this.trialId}`)
           const startDynamicMsg = {
             command: "process_trial",
             trialType: "dynamic",
             trialName: this.trialName,
             isTest: this.isTest,
             session: this.sessionID,
-            trialId: this.trialID
+            trialId: this.trialId
           }
+          this.sendMessage(JSON.stringify(startDynamicMsg))
         },
         reProcessTrial(trial){
           const startDynamicMsg = {
@@ -198,39 +231,39 @@ export default{
         },
         selectTrial(trial){
           this.selectedTrial = trial
-          if (trial.processed){
+          if (trial.processed == "True"){
             this.getVisualizerJson(trial)
+            this.getVisualizerVideo(trial)
           }
-          else {
+          else if (trial.processed == "False") {
             // TODO: Check if all videos exist.
             // Process dynamic (or reprocess) trial
             this.reProcessTrial(trial)
           }
         },
+        getVisualizerVideo(trial){
+          const visualizervideoJsonMsg = {
+            command: "get_visualizer_videos",
+            trialName: trial.trialName,
+            session: this.sessionID,
+          }
+          this.sendMessage(JSON.stringify(visualizervideoJsonMsg))
+        },
         getVisualizerJson(trial) {
-          this.selectedTrial = trial
             const visualizerJsonMsg = {
                 command: "get_visualizer",
                 trialName: trial.trialName,
                 session: this.sessionID
             }
-            console.log(visualizerJsonMsg)
-            if(trial.processed == true) {
+            if(trial.processed == "True") {
+              console.log("Asking for visualizer json")
                 this.sendMessage(JSON.stringify(visualizerJsonMsg)
             )
+            } else {
+              console.log("asked for json but trial not processed.")
             }
-            
-            //this.visualizerJson = animationData
-            //console.log(this.visualizerJson)
-
-            /*import('../assets/dynamic_2.json') // replace with call to server.
-            .then((data) => {
-                console.log(data)
-                this.visualizerJson = data;
-            }).catch((error)=> {
-                console.error('Failed to load JSON data:', error);
-            });*/
         },
+
         downloadSession() {
         // Send a WebSocket request to download the session
           const downloadMsg = {
@@ -259,6 +292,7 @@ export default{
         const emptyDict = {}
         this.$store.commit('data/SET_SESSION_TRIALS', emptyDict)
         this.$store.commit('data/SET_VISUALIZER_JSON', null)
+        this.$store.commit('data/SET_VISUALIZER_VIDEOS', [])
     }
 
     
@@ -296,6 +330,7 @@ export default{
 
 .d-flex {
   display: flex;
+  background-color: #000000;
 }
 
 .flex-column {
@@ -309,4 +344,32 @@ export default{
 .justify-center {
   justify-content: center;
 }
+
+.trial-list {
+  min-width: 100%;
+  max-width: 100%;
+}
+
+.mt-auto {
+  margin-top: auto; /* This ensures that the expansion panel goes to the bottom */
+}
+/* Optional: Style the input and buttons */
+.trial-name-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  margin-top: 10px;
+}
+
+/* Styling for the expansion panel and header */
+.black-panel {
+  background-color: #000000 !important; /* Apply black background */
+}
+
+.black-panel-header {
+  background-color: #000000 !important; /* Ensure header is black */
+  color: #ffffff; /* Set text color to white for contrast */
+}
+
 </style>

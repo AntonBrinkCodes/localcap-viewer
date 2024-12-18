@@ -1,17 +1,53 @@
 <template>
   <div class="video-player d-flex">
     <div class="viewer flex-grow-1">
-      <!--<div v-if=true class="d-flex flex-column h-100">-->
-        <div id="mocap" ref="mocap" class="flex-grow-1" />
-      </div>
-      <!--<div v-else class="flex-grow-1 d-flex align-center justify-center">
-        <p>Loading...</p>
-      </div>
+      <div id="mocap" ref="mocap" class="flex-grow-1" />
+      <div style="display: flex; flex-wrap: wrap; align-items: center;">
+                    <v-text-field label="Time (s)" density="compact" type="number" :step="0.01" :value="time" hide-details
+                        dark style="flex: 0.1; margin-right: 5px;" @input="onChangeTime"/>
+                    <v-slider v-model="frame"
+                              :min="0"
+                              :max="frames.length-1"
+                              hide-details
+                              thumb-label
+                              ref = "slider"
+                              @change="onSliderChange"
+                              @start="onSliderStart"
+                        class="mb-2" style="flex: 1;" />
+                </div>
     </div>
-    <router-view />-->
+    <div class="right d-flex flex-column">
+      <div class="videos flex-grow-1 d-flex flex-column">
+        <video v-for="(video, index) in videos" :key="`video-${index}`" controls :ref="`video-${index}`"
+          muted
+          disablepictureinpicture
+          playsinline :src="video.src" crossorigin="anonymous"
+          @loadedmetadata = "onVideoLoadMetadata(index)"
+          @timeupdate = "onVideoTimeUpdate(index)"
+          @ended = "onVideoEnded(index)" 
+          @error="onVideoError(index)"/>
 
+      </div>
+        
+      <SpeedControl :value="playSpeed" @input="playSpeed = $event" />
+
+      <VideoNavigation :playing="playing" :value="frame" :maxFrame="frames.length -1"
+                        :disabled="videoControlsDisabled" @play="togglePlay(true)" @pause ="togglePlay(false)"
+                        @input="onNavigate" class="mb-2"/>
+
+    </div>
   </div>
+    <!--<h1>Video Viewer</h1>
+    <ul>
+      <li v-for="video in videos" :key="video.name">
+        <h3>{{ video.name }}</h3>
+        <video v-if="video.src" :src="video.src" controls width="480"></video>
+      </li>
+    </ul>-->
 </template>
+
+
+
 
 <script>
 import * as THREE from 'three';
@@ -22,18 +58,33 @@ import { getCurrentInstance } from 'vue'
 
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { OBJLoader } from 'three/examples/jsm/loaders/OBJLoader.js'
-
-import animationData from './assets/dynamic_2.json'; // Assuming the JSON file is in the assets folder
+import videoFile from './assets/Dynamic_1_rotatedwithKeypoints_syncd_Cam1.mp4'
+import VideoNavigation from './components/ui/VideoNavigation.vue'
+import SpeedControl from './components/ui/SpeedControl.vue';
+//import animationData from './assets/dynamic_2.json'; // Assuming the JSON file is in the assets folder
 
 const objLoader = new OBJLoader();
 
 export default {
   name: 'Vizualiser',
+  components: {
+    VideoNavigation,
+    SpeedControl
+  },
   props: {
     animationJson: Object, // Receive the JSON data as a prop
+    videos: [],
   },
   data() {
     return {
+      timeStart: 0,
+      timeEnd: 0,
+      playSpeed: 1,
+      playing: false,
+      frames: [],
+      time: 0,
+      frame: 0,
+      isDragging: false,
       /**meshes: {},
       trialLoading: true,
       scene: null,
@@ -71,6 +122,27 @@ export default {
       },
       immediate: true,
     },
+    videos: {
+      handler(newVideos) {
+      newVideos.forEach((video, index) => {
+        const videoElement = this.videoElement(index);
+        if (videoElement) {
+          videoElement.src = video;
+          videoElement.load();
+        }
+      });
+    },
+    },
+    playSpeed(){
+      console.log(`playspeed changed to ${this.playSpeed}`)
+      this.eachVideo(videoElement =>
+        videoElement.playBackRate = this.playSpeed
+      )
+    },
+    isDragging(value){
+      console.log(`usere is dragging? ${value} to value: ${this.frame}`)
+      this.togglePlay(!value) // Start playing if stopped dragging. Pause if dragging.
+    }
   },
   mounted() {
     console.log("Mount Visualizer...")
@@ -85,7 +157,13 @@ export default {
       this.addEnvironment();
   });
   },
+  computed: {
+    videoControlsDisabled() {
+            return this.frames.length === 0
+        },
+  },
   methods: {
+  
     initializeInstance() {
       this.playing = false;
       this.meshes = {};
@@ -100,6 +178,8 @@ export default {
       //then(data => {
         this.animation_json = this.animationJson;
         this.frames = this.animationJson.time;
+        this.timeEnd = this.frames.length
+        console.log(`endTime is: ${this.timeEnd}`)
         this.trialLoading = false;
       //});
       console.log("loaded data?", this.animation_json);
@@ -129,7 +209,7 @@ export default {
      // show3d
      // add the plane
      {
-         const planeSize = 3
+         const planeSize = 5
          const loader = new THREE.TextureLoader();
          const texture = loader.load('https://threejsfundamentals.org/threejs/resources/images/checker.png');
          //                  const texture = loader.load('https://www.the3rdsequence.com/texturedb/download/32/texture/jpg/1024/smooth+white+tile-1024x1024.jpg')
@@ -190,11 +270,7 @@ this.trialLoading = false
 
 this.onResize()
 // animate
-  
-
-
-
-  this.delay(1000).then(() => {
+    this.delay(1000).then(() => {
     this.togglePlay(true)
   });
 
@@ -219,10 +295,10 @@ this.onResize()
         animate() {
             // cancel display cycle if loading of new trial started
             if (!this.trialLoading) {
-                this.delay(33.33333).then(()=> { // Super dumb but to force 30 fps right now
+                //this.delay(33.33333).then(()=> { // Super dumb but to force 30 fps right now. EDIT: removed now with videos added...
                   requestAnimationFrame(this.animate)
-                  this.animateOneFrameNoVid()
-                }) 
+                  this.animateOneFrame()
+               // }) 
             }
         },
         timeToFrame(time) {
@@ -237,13 +313,14 @@ this.onResize()
             }
         },
         animateOneFrame() {
+          if (this.animation_json !== undefined && this.animation_json !== null) {
             let cframe
 
             let frames = this.frames.length
             let duration = 0
             if (this.vid0()) duration = this.vid0().duration
             if (this.vid0() && !isNaN(this.vid0().duration)) {
-                console.log("are we in this.vid0?")
+                //console.log("are we in this.vid0?")
                 let framerate = frames / duration
 
                 if (this.videos.length > 0) {
@@ -251,8 +328,11 @@ this.onResize()
                     if (this.vid0()) t = this.vid0().currentTime;
                     cframe = (Math.round(t * framerate)) > this.frames.length ? this.frames.length - 1 : (Math.round(t * framerate))
                     this.frame = cframe
+                    //console.log(`this.frame = cframe, which is: ${cframe}`)
+                    this.syncSlider();
                     if (this.vid0()) this.time = this.frame == 0 ? 0 : parseFloat(this.vid0().currentTime.toFixed(2))
                 } else {
+                    console.log("cframe = this.frame++")
                     cframe = this.frame++
 
                     if (this.frame >= this.frames.length) {
@@ -277,135 +357,28 @@ this.onResize()
                                     json.bodies[body].rotation[cframe][1],
                                     json.bodies[body].rotation[cframe][2]);
                                 this.meshes[body + geom].quaternion.setFromEuler(euler);
-                                mesh.updateMatrixWorld(true);
-
                             }
                         })
                     }
                 }
+              }
                 try{
                   this.renderer.render(this.scene, this.camera)
                 } catch(error) {
                   console.log("Error: ", error)
                 }
                 
-                //this.syncVideos()
+                this.syncVideos()
             }
         },
-  animateOneFrameNoVid() {
-    //console.log("this.animation_json is: ", this.animation_json)
-    if (this.animation_json !== undefined && this.animation_json !== null) {
-    let cframe;
-    //console.log("Animating frame no video");
-    let frames = this.frames.length;
-    
-    // Determine current frame
-    this.frame = (this.frame + 1) % this.frames.length; // Loop back to the start if end is reached
-    //console.log("this.frame is: ", this.frame);
-    if (this.frame >= this.frames.length) {
-        this.frame = this.frames.length - 1;
-    }
-    cframe = this.frame;
-    if (cframe < this.frames.length) {
-        // Display the frame
-        let json = this.animation_json;
-        for (let body in json.bodies) {
-            json.bodies[body].attachedGeometries.forEach((geom) => {
-                if (this.meshes[body + geom]) {
-                    this.meshes[body + geom].position.set(
-                        json.bodies[body].translation[cframe][0],
-                        json.bodies[body].translation[cframe][1],
-                        json.bodies[body].translation[cframe][2]
-                    );
-                    var euler = new THREE.Euler(
-                        json.bodies[body].rotation[cframe][0],
-                        json.bodies[body].rotation[cframe][1],
-                        json.bodies[body].rotation[cframe][2]
-                    );
-                    this.meshes[body + geom].quaternion.setFromEuler(euler);
-                }
-            });
-        }
-    }
-  }
-    try {
-        this.renderer.render(this.scene, this.camera);
-      } catch (error) {
-      console.error("Rendering error: ", error);
-      console.error("Scene:", this.scene);
-      console.error("Camera:", this.camera);
-    }
-  
-},
-togglePlay(value) {
-            this.playing = value
+  syncVideos(){
+    if (this.synced || this.videos.length ==0 )
+      return
 
-            if (this.playing) {
-                this.animate()
-
-                 /**this.videos.forEach((video, index) => {
-                    const vid_element = this.videoElement(index)
-                    vid_element.play()
-                })*/
-
-            } /** else {
-                this.videos.forEach((video, index) => {
-                    const vid_element = this.videoElement(index)
-                    vid_element.pause()
-                })
-            }*/
-        },
-
-
-
-
-    /**initThreeJS() {
-      this.scene = new THREE.Scene();
-
-      this.camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-      this.camera.position.z = 5;
-
-      this.renderer = new THREE.WebGLRenderer();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-      this.$refs.mocap.appendChild(this.renderer.domElement);
-
-      this.controls = new OrbitControls(this.camera, this.renderer.domElement);
-      window.addEventListener('resize', this.onWindowResize);
-
-      this.animate();
-    },
-    loadAnimationData() {
-      this.animationData = animationData;
-      this.createAnimation();
-    },
-    createAnimation() {
-      const geometry = new THREE.BoxGeometry();
-      const material = new THREE.MeshBasicMaterial({ color: 0x00ff00 });
-      const cube = new THREE.Mesh(geometry, material);
-      this.scene.add(cube);
-
-      this.mixer = new THREE.AnimationMixer(cube);
-
-      const times = this.animationData.time;
-      const values = [];
-      this.animationData.bodies.pelvis.rotation.forEach(rot => values.push(...rot));
-      const track = new THREE.VectorKeyframeTrack('.rotation', times, values);
-      const clip = new THREE.AnimationClip('rotate', -1, [track]);
-
-      this.mixer.clipAction(clip).play();
-    },
-    animate() {
-      requestAnimationFrame(this.animate);
-      const delta = this.clock.getDelta();
-      if (this.mixer) this.mixer.update(delta);
-      this.renderer.render(this.scene, this.camera);
-    },
-    onWindowResize() {
-      this.camera.aspect = window.innerWidth / window.innerHeight;
-      this.camera.updateProjectionMatrix();
-      this.renderer.setSize(window.innerWidth, window.innerHeight);
-    },*/
-    loadAndReplaceSkeleton() {
+      this.playSpeed =1
+      this.synced=true
+  },
+  loadAndReplaceSkeleton() {
     for (let body in this.animation_json.bodies) {
       let bd = this.animation_json.bodies[body];
       
@@ -472,7 +445,102 @@ togglePlay(value) {
     if (mesh.material && mesh.material.map) {
       mesh.material.map.dispose();
     }
+  },
+  onVideoLoadMetadata(index) {
+    if (index === 0) {
+      console.log("onVideoLoadedMetadata ran")
+        this.videos.forEach((video, index) => {
+              const vid_element = this.videoElement(index)
+              vid_element.currentTime = this.timeStart
+        })
+    }
+  },
+  onVideoTimeUpdate(index) {
+      if (index === 0) {
+        //console.log(`onVideoTimeUpdate ran.. is playing? ${this.playing}`)
+          this.videos.forEach((video, index) => {
+                const vid_element = this.videoElement(index)
+                if(vid_element.currentTime >= this.timeEnd) {
+                    vid_element.currentTime = this.timeStart
+                }
+          })
+      }
+  },
+  onVideoEnded(index) {
+      if (index === 0) {
+        console.log("onVideoEnded ran")
+          this.videos.forEach((video, index) => {
+              const vid_element = this.videoElement(index)
+              vid_element.currentTime = this.time = this.timeStart
+              vid_element.play()
+          })
+      }
+  },
+  videoElement(index) {
+      const vid = this.$refs[`video-${index}`]
+      return vid ? vid[0]: null
+  },
+  vid0() {
+      return this.videoElement(0)
+  },
+  onVideoError(index) {
+    console.error(`Error loading video at index ${index}:`, this.videos[index]);
+  },
+  eachVideo(func){
+    this.videos.forEach((video, index) => {
+      console.log(index)
+      func(this.videoElement(index))
+    })
+  },
+  togglePlay(value) {
+     this.playing = value
+     if (this.playing) {
+         this.animate()
+         this.videos.forEach((video, index) => {
+             const vid_element = this.videoElement(index)
+             vid_element.play()
+         })
+     } else {
+         this.videos.forEach((video, index) => {
+             const vid_element = this.videoElement(index)
+             vid_element.pause()
+         })
+     }
+ },
+ onNavigate(frame) {
+     const step = this.vid0().duration / this.frames.length
+     const newPosition = frame * step
+     //const newPosition = this.timeStart + frame * (this.timeEnd - this.timeStart) / (this.frames.length - 1);
+     this.time = newPosition; // Sync time with the new frame position.
+     this.eachVideo(videoElement => {
+         videoElement.currentTime = newPosition
+     })
+     this.animateOneFrame()
+ },
+ syncSlider(){
+  const sliderElement = this.$refs.slider; // Make sure to add a `ref` to the slider
+  if (sliderElement) {
+    sliderElement.value = this.frame; // Sync manually if needed
   }
+ },
+ onSliderChange(newFrame) {
+    this.isDragging = false; // Stop dragging
+    this.frame = newFrame;  // Update the animation frame
+    this.onNavigate(newFrame)
+  },
+  onSliderStart() {
+    this.isDragging = true; // User started dragging
+  },
+ onChangeTime(newTime) {
+    this.time=newTime
+     this.eachVideo(videoElement => {
+         videoElement.currentTime = newTime
+     })
+     this.animateOneFrame()
+ },
+ maxVideoDuration() {
+     return this.vid0() ? (this.vid0().duration - 1) : 0
+ },
 },
 
 };
@@ -483,29 +551,29 @@ togglePlay(value) {
 .video-player {
     height: calc(100% - 64px);
     width: 100vh;
-    .left {
-        width: 100vh;
+    //left {
+        //width: 100vh;
 
-        .trials {
-            overflow-y: auto;
-
-            .trial {
-                border-radius: 4px;
-                padding: 2px 6px;
-
-                &.selected {
-                    background-color: #272727;
-                    cursor: default;
-                }
-            }
-        }
-    }
+      //  .trials {
+      //      overflow-y: auto;
+//
+      //      .trial {
+      //          border-radius: 4px;
+      //          padding: 2px 6px;
+//
+      //          &.selected {
+      //              background-color: #272727;
+      //              cursor: default;
+      //          }
+      //      }
+      //  }
+    //}
 
     .viewer {
         height: 100%;
 
         #mocap {
-          height: 100vh;
+         height: calc(100vh - 100px);
             width: 100%;
             overflow: hidden;
 

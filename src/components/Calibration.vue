@@ -8,7 +8,7 @@
     @left="$router.push(`/${sessionID}/session`)"
     @right="onNext"
   >
-  <v-container fluid>
+  <v-container fluid style="overflow: scroll; min-height: calc(100vh - 50px);">
     <!-- Row 1 -->
     <v-row class="row-equal">
       <v-col cols="12">
@@ -43,74 +43,99 @@
 
     <!-- Row 2 -->
     <v-row class="row-equal">
-      <v-col cols="12">
-        <v-card class="step-2-2 flex-grow-1 pa-4">
-          <v-row class="align-center">
-            <v-col cols="6" class="pr-4">
-              <v-card-title class="align-center">Provide the checkerboard details</v-card-title>
-              <v-card-text class="d-flex align-center">
-                <div class="d-flex flex-grow-1 align-center inputs">
-                  <v-text-field v-model="rows" label="Rows" class="mr-3" />
-                  <v-text-field v-model="cols" label="Columns" class="mr-3" />
-                  <v-text-field v-model="squareSize" label="Square size (mm)" />
-                  <v-select 
-                    v-model="placement"
-                    :items="items"
-                    item-title="name"
-                    label="Placement"
-                  >
-                    <template v-slot:item="{ props, item }">
-                      <v-list-item v-bind="props" :subtitle="item.descr"></v-list-item>
-                    </template>
-                  </v-select>
-                </div>
-              </v-card-text>
-            </v-col>
+  <v-col cols="12">
+    <v-card class="step-2-2 flex-grow-1 pa-4">
+      <v-row class="align-center">
+        <v-col cols="6" class="pr-4">
+          <v-card-title class="align-center">Provide the checkerboard details</v-card-title>
+          <v-card-text class="d-flex align-center">
+            <!-- Create a new row for the Text Field and Select -->
+            <v-row class="d-flex align-center">
+              <v-col cols="3" class="flex-grow-1 flex-shrink-1" >
+                <v-text-field v-model="rows" label="Rows" class="mr-3" />
+              </v-col>
+              <v-col cols="3" class="flex-grow-1 flex-shrink-1" >
+                <v-text-field v-model="cols" label="Columns" class="mr-3" />
+              </v-col>
+              <v-col cols="8" class="flex-grow-1 flex-shrink-1">
+                <v-text-field v-model="squareSize" label="Square size (mm)" />
+              </v-col>
+            <!-- v-select will be placed in another row -->
+              <v-col cols="8" class="flex-grow-1 flex-shrink-1">
+                <v-select 
+                  v-model="placement"
+                  :items="items"
+                  item-title="name"
+                  item-value="value"
+                  label="Placement"
+                >
+                  <template v-slot:item="{ props, item }">
+                    <v-list-item v-bind="props" :subtitle="item.descr"></v-list-item>
+                  </template>
+                </v-select>
+              </v-col>
+            </v-row>
+          </v-card-text>
+        </v-col>
 
-            <v-col cols="6" class="pl-4">
-              <div class="image-container text-center">
-                <img 
-                  src="/src/assets/images/checkerboard_45.png" 
-                  class="img-fluid checkerboard-image" 
-                  alt="Checkerboard Placement" 
+        <v-col cols="6" class="pl-4">
+          <div class="image-container text-center">
+            <img 
+              src="/src/assets/images/checkerboard_45.png" 
+              class="img-fluid checkerboard-image" 
+              alt="Checkerboard Placement" 
+            />
+          </div>
+        </v-col>
+      </v-row>
+    </v-card>
+  </v-col>
+</v-row>
+
+
+<v-expansion-panels>
+  <v-expansion-panel>
+    <v-expansion-panel-title>
+      DEBUG
+    </v-expansion-panel-title>
+    <v-expansion-panel-text>
+      <v-row class="debug-row">
+        <v-col cols="12">
+          <v-card class="step-2-2 flex-grow-1 p-4">
+            <v-card-title class="justify-center">DEBUG:</v-card-title>
+            <v-row class="mt-4" no-gutters>
+              <v-col cols="2">
+                <v-checkbox
+                  v-model="testSession"
+                  label="Use test sessions instead of recorded"
+                ></v-checkbox>
+              </v-col>
+              <v-col cols="8" class="pr-2">
+                <v-text-field 
+                  v-model="inputMessage"
+                  clearable 
+                  label="Debug Message" 
+                  variant="solo-filled"
+                  full-width
                 />
-              </div>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
+              </v-col>
+              <v-col cols="2">
+                <v-btn @click="sendMessage" block>
+                  Send
+                </v-btn>
+              </v-col>
+            </v-row>
+            <v-checkbox
+              v-model="shouldMirror"
+              label="Mirror input">
+            </v-checkbox>
+          </v-card>
+        </v-col>
+      </v-row>
+    </v-expansion-panel-text>
+  </v-expansion-panel>
+</v-expansion-panels>
 
-    <!-- Debug Section -->
-    <v-row class="debug-row">
-      <v-col cols="12">
-        <v-card class="step-2-2 flex-grow-1 p-4">
-          <v-card-title class="justify-center">DEBUG:</v-card-title>
-          <v-row class="mt-4" no-gutters>
-            <v-col cols="2">
-              <v-checkbox
-                v-model="testSession"
-                label="Use test sessions instead of recorded"
-              ></v-checkbox>
-            </v-col>
-            <v-col cols="8" class="pr-2">
-              <v-text-field 
-                v-model="inputMessage"
-                clearable 
-                label="Debug Message" 
-                variant="solo-filled"
-                full-width
-              />
-            </v-col>
-            <v-col cols="2">
-              <v-btn @click="sendMessage" block>
-                Send
-              </v-btn>
-            </v-col>
-          </v-row>
-        </v-card>
-      </v-col>
-    </v-row>
   </v-container>
   </MainLayout>
 </template>
@@ -126,9 +151,10 @@ export default {
   },
   data() {
     return {
+      shouldMirror: false,
       items: [
-        { name: 'backwall', descr: 'default' },
-        { name: 'ground', descr: 'experimental' },
+        { name: 'backwall', value: 'backWall',descr: 'default' },
+        { name: 'ground', value: 'ground', descr: 'experimental' },
       ],
       placement: null,
       rows: 4,
@@ -180,14 +206,15 @@ export default {
           trialId: "calibration",
           trialName: "calibration",
           session: this.sessionID,
-          isTest: this.testSession
+          isTest: this.testSession,
+          shouldMirror: this.shouldMirror,
         }
         this.sendMessage(JSON.stringify(processCalibrationMsg))
       }
     }
   },
   created() {
-    this.placement = this.items[0].name;
+    this.placement = this.items[0].values;
     this.testSession= false
   },
   mounted() {
@@ -221,12 +248,14 @@ export default {
           this.sendMessage(JSON.stringify(calibMessage))
       }
       else if (!this.calibrated){
+        console.log(this.placement)
         // Send message to start recording the calibration videos.
         const calibMessage = {
           session: this.sessionID,
           command: 'start_recording',
           trialType: "calibration",
           trialId: "calibration",
+          trialName: "calibration",
           rows: this.rows,
           cols: this.cols,
           squareSize: this.squareSize,
@@ -273,5 +302,8 @@ v-container {
   height: 100vh;
   display: flex;
   flex-direction: column;
+  overflow-y: auto;
 }
+
+
 </style>
