@@ -30,7 +30,15 @@
   WebSocket Status: {{ this.connectionStatus }}
 </v-tooltip>
       </div>
-
+      <v-text-field
+  v-model="maxFrameRate"
+  type="number"
+  label="DEBUG Max Frame Rate min 60 max 500"
+  :min="60"
+  :max="500"
+  :step="15"
+  class="mb-4"
+/>
       <!-- Search Field -->
       <v-text-field
         v-model="search"
@@ -53,7 +61,11 @@
           </v-btn>
         </template>
       </v-data-table>
+
+
     </div>
+
+  
 
     <!-- Confirmation Dialog for Deleting -->
     <v-dialog v-model="deleteDialog" max-width="500px">
@@ -102,10 +114,20 @@ export default {
       BASEURL: state =>  state.BASEURL,
       sessionID: state => state.sessionID,
       sessionList: state => state.sessionList,
+      maxFrameRateFromStore: state => state.maxFrameRate
     }),
+    maxFrameRate: {
+    get() {
+      return this.maxFrameRateFromStore
+    },
+    set(value) {
+      this.$store.commit('SET_MAX_FRAME_RATE', value)
+    }
+  },
     headers() {
       return [
         { title: 'Session ID', key: 'sessionID', align:'start', sortable:false },
+        { title: 'Session Name', key: 'sessionName', align: 'end', sortable: false},
         { title: 'Subject Name', key: 'subjectName', align:'end', sortable:false },
         { title: 'Height (m)', key: 'height', align:'end'},
         { title: 'Mass (kg)', key: 'mass' , align:'end'},
@@ -117,6 +139,7 @@ export default {
       // Convert sessionList object to an array and filter based on the search term
       const sessionsArray = Object.entries(this.sessionList).map(([uuid, session]) => ({
         uuid, // Keep UUID for unique identification
+        sessionName: session.sessionName || "-",
         sessionID: session.sessionID || uuid,
         subjectName: session.subjectName || '-',
         height: session.height || '-',

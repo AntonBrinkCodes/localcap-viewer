@@ -28,10 +28,23 @@
             <v-expansion-panel-title class="black-panel-header">
               Options
             </v-expansion-panel-title>
+            <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
+                <p>max framerate is: {{ this.maxFrameRate }} </p>
+              </v-card-text>
         <v-expansion-panel-text>
           <v-btn variant ="outlined" @click="this.$router.push(`/`)" >Home</v-btn>
           <v-btn variant ="outlined" @click="this.downloadSession">Download</v-btn>
           <v-btn variant ="outlined" @click="this.getTrials">Refresh Trials</v-btn>
+          <v-select
+      v-model="selectedFrameRate"
+      :items="filteredFrameRates"
+      item-title="name"
+      item-value="value"
+      label="Select frame rate"
+      return-object
+      :disabled="isRecording || isUploading"
+    ></v-select>
+        <!-- Add camera frame rate button here! -->
         </v-expansion-panel-text>
       </v-expansion-panel>
     </v-expansion-panels>
@@ -85,6 +98,8 @@ export default{
     mounted() {
         this.$store.commit('RESET_UPLOADED_VIDEOS')
         this.getTrials()
+        // set default selected frame rate
+        this.selectedFrameRate = this.filteredFrameRates[0];
     },
     data () {
         return {
@@ -95,6 +110,14 @@ export default{
             recordingStartTime: null,
             elapsedTime: 0,
             timerInterval: null,
+            frameRateOptions: [
+  { name: '60', value: '60', descr: 'default frame rate' },
+  {name: '100', value: '100', discr: '100 fps'},
+  { name: '120', value: '120', descr: 'high frame rate' },
+  {name: '200', value: '200', descr: '200 fps'},
+  { name: '240', value: '240', descr: 'Highest motion' }
+],
+selectedFrameRate: null
         }
     },
     computed: {
@@ -102,7 +125,8 @@ export default{
             sessionID: state => state.sessionID,
             cameras: state => state.sessionCameras,
             isDownloading: state => state.isDownloading,
-            uploadedVideos: state => state.uploadedVideos
+            uploadedVideos: state => state.uploadedVideos,
+            maxFrameRate: state => state.maxFrameRate
         }),
         ...mapState('data',{
             isTest: state => state.test_session,
@@ -125,6 +149,11 @@ export default{
         const minutes = Math.floor(this.elapsedTime / 60000); // Get total minutes
         return `${minutes}:${seconds < 10 ? '0' : ''}${seconds}:${centiseconds < 10 ? '0' : ''}${centiseconds}`;
       },
+      filteredFrameRates() {
+      return this.frameRateOptions.filter(
+        option => Number(option.value) <= this.maxFrameRate
+      );
+    },
     },
     watch: {
         session(newTrials) {
@@ -141,7 +170,19 @@ export default{
         },
         trialId(newValue){
           console.log(`New trial ID is: ${newValue}`)
-        }
+        },
+        selectedFrameRate(newValue){
+          // Send to webapp a message to change the frame rate (we do not send if the webapp is recording)
+          if (!this.isRecording){
+            console.log(`Sending to set framerate to: ${this.selectedFrameRate.value} (or is it ${newValue.value}?)`)
+            const framerateMessage = {
+              command: "set_framerate",
+              session: this.sessionID,
+              framerate: this.selectedFrameRate.value
+            }
+            this.sendMessage(JSON.stringify(framerateMessage))
+          }
+        },
     },
     methods: {
         ...mapActions(['sendMessage', 'getBASEURL', 'RESET_']),

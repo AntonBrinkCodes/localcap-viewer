@@ -20,6 +20,10 @@
       <h2 class="step-instruction">4. Position the tripod and camera to capture the volume of interest</h2>
       <h2 class="step-instruction">5. Repeat 1-4 for all phones you want to connect</h2>
       <h2 class="step-instruction">6. Have the person practice the activity and verify that they are fully in view of at least 2 cameras</h2>
+<!-- DEBUG FOR FRAMERATE-->
+      <v-card-text style="padding-top: 5px; padding-bottom: 0; font-size: 16px;">
+                <p>max framerate is: {{ this.maxFramerate }} </p>
+              </v-card-text>
     </div>
 
     <!-- Right column for QR code -->
@@ -62,6 +66,7 @@ import { mapMutations } from 'vuex/dist/vuex.cjs.js';
         receivedMessage: 'receivedMessage',
         BASEURL: (state) => state.BASEURL,
         sessionID: (state) => state.sessionID,
+        maxFramerate: 'maxFrameRate'
       }),
       ...mapState('data', {
       calibrated: state => state.calibrated,

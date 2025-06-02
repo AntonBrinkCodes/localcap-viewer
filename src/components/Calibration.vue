@@ -22,7 +22,7 @@
                 <ul class="pl-4">
                   <li>It should be visible by all cameras (nothing in the way of cameras' view when hitting Calibrate)</li>
                   <li>It should be horizontal (longer side on the floor)</li>
-                  <li>It should be perpendicular to the floor (not lying on the floor)</li>
+                  <li>(If placement is backwall) It should be perpendicular to the floor.</li>
                 </ul>
               </v-card-text>
             </v-col>
@@ -157,9 +157,9 @@ export default {
         { name: 'ground', value: 'ground', descr: 'experimental' },
       ],
       placement: null,
-      rows: 4,
-      cols: 5,
-      squareSize: 35,
+      //rows: 4,
+      //cols: 5,
+      //squareSize: 50,
       inputMessage: '', // For Debug
     };
   },
@@ -175,6 +175,9 @@ export default {
     }),
     ...mapState('data', {
       calibrated: state => state.calibrated,
+      rowsFromStore: state => state.rows,
+      colsFromStore: state => state.cols,
+      squareSizeFromStore: state => state.squareSize
     }),
     rightButtonText() {
       return this.calibrated ? 'Continue' : 'Calibrate';
@@ -186,6 +189,30 @@ export default {
       set(value) {
         this.setTestSession(value);
       },
+    },
+    cols: {
+      get() {
+        return this.colsFromStore
+      },
+      set(value){
+        this.$store.commit('data/SET_COLS', value)
+      }
+    },
+    rows: {
+      get() {
+        return this.rowsFromStore
+      },
+      set(value){
+        this.$store.commit('data/SET_ROWS', value)
+      }
+    },
+    squareSize: {
+      get() {
+        return this.squareSizeFromStore
+      },
+      set(value){
+        this.$store.commit('data/SET_SQUARESIZE', value)
+      }
     },
   },
   watch: {
@@ -214,8 +241,16 @@ export default {
     }
   },
   created() {
-    this.placement = this.items[0].values;
+    this.placement = this.items[0].value;
     this.testSession= false
+    console.log(`Sending to set framerate to: 60)`)
+    const framerateMessage = {
+      command: "set_framerate",
+      session: this.sessionID,
+      framerate: 60
+      }
+      this.sendMessage(JSON.stringify(framerateMessage))
+          
   },
   mounted() {
     console.log(`SessionID is: ${this.sessionID}`);

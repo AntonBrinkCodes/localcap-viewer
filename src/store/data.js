@@ -2,7 +2,9 @@
 export default {
     namespaced: true,
     state: {
-
+        rows: 4,
+        cols: 5,
+        squareSize: 35,
         //
         sessions: [],
 
@@ -85,6 +87,15 @@ export default {
             state.augmenter_model = augmenter_model
             state.filter_frequency = filter_frequency
           },
+        SET_ROWS(state, rows){
+            state.rows = rows
+        },
+        SET_COLS(state, cols) {
+            state.cols = cols
+        },
+        SET_SQUARESIZE(state, squareSize){
+            state.squareSize = squareSize
+        },
         SET_SUBJECTS(state, subjects){
             state.subjects = subjects
         },
