@@ -8,7 +8,7 @@ const baseURL = "130.229.135.163:" // LINUX
 //const baseURL = "192.168.50.9:" // Landet: Remove :)
 //const baseURL = "192.168.0.48:" //(MAC IN EDUROAM?) 
 const port = "8080"
-
+const MAXFRAMERATE = 500
 export default createStore({
   state: {
     webSocket: null,
@@ -28,6 +28,9 @@ export default createStore({
     // For Downloading
     isDownloading: false,  // Indicate whether a download is in progress
     downloadFilename: "",
+    maxFrameRate: MAXFRAMERATE // Current max that we allow probably none that has this :)
+
+    
   },
   mutations: {
     SET_WEBSOCKET(state, webSocket) {
@@ -96,6 +99,21 @@ export default createStore({
       console.log("setting uploaded videos to 0")
       state.uploadedVideos = 0
     },
+    NEW_CAMERA_MAX_FRAME_RATE(state, framerate) {
+      console.log(`framerate recieved: ${framerate}, old max is: ${state.maxFrameRate}`)
+      if (framerate < state.maxFrameRate) {
+        console.log("Replacing old framerate")
+        state.maxFrameRate = framerate
+      }
+    },
+    RESET_CAMERA_MAX_FRAME_RATE(state){
+      state.maxFrameRate = MAXFRAMERATE
+    },
+    SET_MAX_FRAME_RATE(state, framerate){
+      console.log(`setting framerate to ${framerate}`)
+      state.maxFrameRate =  framerate
+    },
+    
     /* DOWNLOAD STUFF */
     START_DOWNLOAD(state, filename) {
       state.isDownloading = true;
@@ -149,6 +167,7 @@ export default createStore({
             console.log("MOBILE CONNECTED")
             console.log(jsonMessage.content)
             commit('SESSION_CAMERA_CONNECTED')
+            commit('NEW_CAMERA_MAX_FRAME_RATE', jsonMessage.maxFrameRate)
           }
           else if (jsonMessage.command == "video_uploaded") {
             console.log("Video Uploaded")
@@ -263,13 +282,15 @@ export default createStore({
       }      
     },
     resetSession({ state, commit }){
+      console.log("RESETING SESSION")
         commit('RESET_UPLOADED_VIDEOS')
         commit('RESET_SESSION_CAMERA')
         commit('SET_SESSIONID', null)
         commit('data/SET_CALIBRATED', false)
         commit('data/SET_NEUTRALPOSE', false)
         commit('data/SET_NEW_TRIAL_ID', "")
-        commit('data/SET_TEST_SESSION', false)      
+        commit('data/SET_TEST_SESSION', false) 
+        commit('RESET_CAMERA_MAX_FRAME_RATE')     
     },
     triggerToast({ state, commit} , {toastType, message}){
       console.log("In trigger Toast")

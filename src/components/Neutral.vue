@@ -349,6 +349,7 @@ export default {
           subject: this.subject,
           isTest: this.isTest,
           session: this.sessionID,
+          sessionName: this.sessionName
         }
         const delay = this.timerSeconds * 1000; // Convert seconds to milliseconds
         if (delay > 0) {
