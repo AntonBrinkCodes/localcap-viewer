@@ -10,7 +10,8 @@ export default {
 
         session : {
             id: '',
-            trials: []
+            trials: [],
+            maxCams: 0,
         },
         calibrated: false,
         neutralPose: false, // whetever the neutral pose is recorded.
@@ -122,6 +123,11 @@ export default {
           // commit it to state
             state.session.trials = trials
         },
+        SET_SESSION_MAXVIDCOUNT(state, count){
+            console.log("session max vid count is: ", count)
+            state.session.maxCams = count
+        },
+
         SET_NEW_TRIAL_ID(state, newTrialId){
             console.log("setting newTrialID")
             state.newTrialId = newTrialId

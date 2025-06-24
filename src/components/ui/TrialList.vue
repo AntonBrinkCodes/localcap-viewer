@@ -20,6 +20,13 @@
               'unprocessed': trial.processed !== 'True' && trial.processed !== 'Error' 
             }"
           ></span>
+          <button 
+            class="hamburger-button" 
+            @click.stop="onHamburgerClick(trial)"
+            title="Reprocess Options"
+          >
+            ☰
+          </button>
         </div>
 
         <!-- Loader Container -->
@@ -53,11 +60,14 @@ export default {
       selectedTrial: null, // Store the currently selected trial
     };
   },
-  emits: ["trial-click"],
+  emits: ["trial-click", "hamburger-click"],
   methods: {
     onTrialClick(trial) {
       this.selectedTrial = trial; // Mark the clicked trial as selected
       this.$emit("trial-click", trial); // Emit the selected trial to the parent
+    },
+    onHamburgerClick(trial) {
+      this.$emit("hamburger-click", trial);
     },
   },
 };
@@ -69,6 +79,20 @@ ul {
   list-style-type: none;
   padding: 0;
   overflow: auto;
+}
+
+.hamburger-button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  margin-left: 10px;
+  color: #333;
+  transition: color 0.2s;
+}
+
+.hamburger-button:hover {
+  color: #1976d2;
 }
 
 .trial-item {
