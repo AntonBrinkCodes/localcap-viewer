@@ -201,6 +201,11 @@ export default createStore({
             console.log("Going to commit to data/SET_SESSION_TRIALS")
             commit('data/SET_SESSION_TRIALS', jsonMessage.content)
           }
+          else if (jsonMessage.command == "maxVidCount") {
+            console.log("Commiting to data/SET_SESSION_MAXVIDCOUNT")
+            commit('data/SET_SESSION_MAXVIDCOUNT', jsonMessage.content)
+
+          }
           else if (jsonMessage.command =="Toast") {
               const toastType = jsonMessage.type
               const message = jsonMessage.content

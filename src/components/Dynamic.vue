@@ -20,7 +20,15 @@
       Duplicate trial name!
     </span>
 
-    <TrialList :trials="session.trials" @trial-click="selectTrial" class="trial-list"/>
+
+    <TrialList :trials="session.trials" @trial-click="selectTrial" @hamburger-click="openDialogForTrial" class="trial-list"/>
+    <ReprocessDialog
+      :visible="isDialogVisible"
+      :item="selectedTrial"
+      :cameraCount="this.session.maxCams"
+      @close="isDialogVisible = false"
+      @reprocess="handleReprocess"
+      />
         
      
     <v-expansion-panels class = "mt-auto" style="background-color: #000000;">
@@ -35,6 +43,7 @@
           <v-btn variant ="outlined" @click="this.$router.push(`/`)" >Home</v-btn>
           <v-btn variant ="outlined" @click="this.downloadSession">Download</v-btn>
           <v-btn variant ="outlined" @click="this.getTrials">Refresh Trials</v-btn>
+          <v-checkbox v-model="this.stopAutoProcess" label="Stop trial from automatically processing after upload"></v-checkbox>          
           <v-select
       v-model="selectedFrameRate"
       :items="filteredFrameRates"
@@ -87,6 +96,7 @@ import {mapState, mapActions} from 'vuex'
 import Visualizer from '../Visualizer.vue';
 import TrialList from '../components/ui/TrialList.vue';
 import { TiltLoader } from 'three/examples/jsm/Addons.js';
+import ReprocessDialog from '../components/ui/ReprocessDialog.vue';
 
 //import animationData from '../assets/dynamic_2.json'
 export default{
@@ -94,17 +104,22 @@ export default{
     components: {
         Visualizer,
         TrialList,
+        ReprocessDialog,
     },
     mounted() {
         this.$store.commit('RESET_UPLOADED_VIDEOS')
         this.getTrials()
+        this.getVideoCount()
         // set default selected frame rate
         this.selectedFrameRate = this.filteredFrameRates[0];
+
     },
     data () {
         return {
             trialName: "", // To enter new trialName
+            stopAutoProcess: false,
             selectedTrial: null, //
+            isDialogVisible: false,
             isRecording: false,
             isUploading: false,
             recordingStartTime: null,
@@ -164,7 +179,9 @@ selectedFrameRate: null
           if (newAmount == this.cameras){
             // Send to process the trial
             this.isUploading = false
-            this.processNewTrial()
+            if (!stopAutoProcess) {
+              this.processNewTrial()
+            }
             this.$store.commit('RESET_UPLOADED_VIDEOS')
           }
         },
@@ -242,7 +259,7 @@ selectedFrameRate: null
           }
           this.sendMessage(JSON.stringify(startDynamicMsg))
         },
-        reProcessTrial(trial){
+        reProcessTrial(trial){ // Basic reprocess with default settings
           const startDynamicMsg = {
             command: "process_trial",
             trialType: "dynamic",
@@ -256,6 +273,30 @@ selectedFrameRate: null
           this.sendMessage(JSON.stringify(startDynamicMsg))
 
         },
+        openDialogForTrial(trial){
+          console.log('opening trial', trial.trialName)
+          this.selectedTrial = trial
+          this.isDialogVisible = true;
+        },
+        handleReprocess(payload){ // reprocess with settings applied from hamburger menu.
+          console.log('reprocess payload', payload)
+          const trialType = payload.item.trialName != "neutral" ? "dynamic" : "neutral"
+          console.log('trialType: ', trialType)
+          const reprocessMsg = {
+            command: "reprocess_trial",
+            trialType: trialType,
+            trialName: payload.item.trialName,
+            session: this.sessionID,
+            trialId: payload.item.uuid,
+            forceRedoPoseEstimation: payload.forceRedo,
+            cameras_to_use: payload.cameras,
+            poseEstimator: payload.poseModel,
+            resolution: payload.resolution
+          }
+          console.log(reprocessMsg)
+
+          this.sendMessage(JSON.stringify(reprocessMsg))
+        },  
         getTrials(){
             const getTrialsMsg = {
                 command: "get_session_trials", 
@@ -266,6 +307,14 @@ selectedFrameRate: null
                 JSON.stringify(getTrialsMsg)
             )
         },
+        getVideoCount() {
+          const getVideoCountMsg = {
+            command:"get_max_video_count",
+            session: this.sessionID
+          }
+          this.sendMessage(JSON.stringify(getVideoCountMsg))
+        },
+
         stopVisualizer(){
             this.visualizerJSON = null
             this.$store.commit('data/SET_VISUALIZER_JSON', null)
