@@ -82,11 +82,12 @@ ul {
 }
 
 .hamburger-button {
+  flex-shrink: 0;
   background: none;
   border: none;
   font-size: 18px;
   cursor: pointer;
-  margin-left: 10px;
+  margin-left: 5px;
   color: #333;
   transition: color 0.2s;
 }
@@ -130,6 +131,9 @@ ul {
 .trial-name {
   font-weight: bold;
   flex: 1;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
 
 .status-indicator {

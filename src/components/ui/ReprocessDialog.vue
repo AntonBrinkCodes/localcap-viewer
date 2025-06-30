@@ -6,7 +6,6 @@
       </v-card-title>
 
       <v-card-subtitle class="text-caption text-red-600">
-        ⚠️ Work in Progress – Feature not fully implemented
       </v-card-subtitle>
 
       <v-divider class="my-2" />
@@ -19,10 +18,10 @@
             <v-col
               v-for="camIndex in Array.from({ length: cameraCount }, (_, i) => i)"
               :key="camIndex"
-              cols="6" sm="4" md="3"
+              
             >
               <v-checkbox
-                :label="'Camera ' + camIndex"
+                :label="'Cam ' + camIndex"
                 :value="'Cam' + camIndex"
                 v-model="selectedCameras"
                 hide-details
@@ -61,12 +60,17 @@
         <v-divider class="my-4" />
 
         <!-- Force Redo -->
-        <v-checkbox
-          v-model="forceRedo"
-          label="Force redo pose estimation"
-          hide-details
-          dense
-        />
+        <v-tooltip text="Re-run pose estimation even if results exist">
+  <template v-slot:activator="{ props }">
+    <v-checkbox
+      v-model="forceRedo"
+      label="Force redo pose estimation"
+      hide-details
+      density="compact"
+      v-bind="props"
+    />
+  </template>
+</v-tooltip>
       </v-card-text>
 
       <v-card-actions class="justify-end">

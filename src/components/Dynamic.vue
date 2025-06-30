@@ -179,8 +179,10 @@ selectedFrameRate: null
           if (newAmount == this.cameras){
             // Send to process the trial
             this.isUploading = false
-            if (!stopAutoProcess) {
+            if (!this.stopAutoProcess) {
               this.processNewTrial()
+            } else {
+              this.getTrials()
             }
             this.$store.commit('RESET_UPLOADED_VIDEOS')
           }
